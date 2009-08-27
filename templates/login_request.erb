@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrufinaLoginRequest xmlns="http://www.trufina.com/truapi/1/0">
+  <PID><%= @config[:credentials][:pid] %></PID>
+  <PRT><%= @prt %></PRT>
+  <PAK><%= @config[:credentials][:pak] %></PAK>
+  <CancelURL><%= @config[:local_endpoints][:cancel] %></CancelURL>
+  <SuccessURL><%= @config[:local_endpoints][:success] %></SuccessURL>
+  <FailureURL><%= @config[:local_endpoints][:failure] %></FailureURL>
+  <AccessRequest>
+    <Name>
+      <First />
+    </Name>
+    <Age/>
+    <ResidenceAddress>
+      <State/>
+    </ResidenceAddress>
+  </AccessRequest>
+  <SeedInfo xmlns="">
+    <Name>
+      <Prefix>Mr</Prefix>
+      <First>John</First>
+      <MiddleInitial>A</MiddleInitial>
+      <Surname>Doe</Surname>
+      <Suffix>Jr</Suffix>
+    </Name>
+    <DateOfBirth>1964-09-01</DateOfBirth>
+    <CountryOfBirth>us</CountryOfBirth>
+    <Phone>4105551212</Phone>
+    <ResidenceAddress>
+      <StreetAddress>1 Main Street</StreetAddress>
+      <StreetAddress>Suite E</StreetAddress>
+      <City>Burlingame</City>
+      <State>CA</State>
+      <PostalCode>94010</PostalCode>
+    </ResidenceAddress>
+    <Last4SSN>1234</Last4SSN>
+  </SeedInfo>
+</TrufinaLoginRequest>
