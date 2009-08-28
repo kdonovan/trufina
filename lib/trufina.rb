@@ -2,12 +2,15 @@ require 'net/http'
 require 'net/https'
 require 'ostruct'
 
+require 'nokogiri'
+
 class Trufina
   class TrufinaException < StandardError; end
   class ConfigFileNotFoundError < TrufinaException; end
   class TemplateFileNotFoundError < TrufinaException; end
   class MissingPartnerReferenceToken < TrufinaException; end
   class NetworkError < TrufinaException; end
+  class RequestFailure < TrufinaException; end
 
   # Base class for template binding objects.  Each remote call has a local template, and
   # template rendering grabs the binding from a TemplateBinding object to lookup variables.
@@ -34,6 +37,38 @@ class Trufina
   def self.recursively_symbolize_keys!(hash)
     hash.symbolize_keys!
     hash.values.select{|v| v.is_a? Hash}.each{|h| recursively_symbolize_keys!(h)}
+  end
+  
+  
+    
+  class XML
+    def self.namespace
+      "http://www.trufina.com/truapi/1/0"
+    end
+        
+    attr_accessor :xml
+    
+    def initialize(str)
+      @xml = Nokogiri::XML(str).root
+      
+      # Check for errors
+      if @xml.name == 'TrufinaRequestFailure'
+        error = @xml.xpath('//xmlns:Error').first
+        raise RequestFailure.new("#{error.attributes['kind']}: #{error.text}")
+      end
+      
+      @xml
+    end
+    
+    
+    AUTH_ITEMS = %w(PRT PLID TNID PUR)
+    AUTH_ITEMS.each do |token|
+      define_method token.downcase do
+        node = @xml.xpath("//trufina:#{token}", 'trufina' => Trufina::XML.namespace).first
+        node ? node.text : nil
+      end
+    end
+
   end
   
   
@@ -76,12 +111,15 @@ class Trufina
     "http://#{domain}#{path}"
   end
   
-  # Trufina.new.login_request('1')
+  
+  # Creates and sends a login request for the specified PRT
+  # a = Trufina.new.login_request(Time.now)
   def login_request(prt)
     xml = render(:login_request, LoginRequest.new(prt))
     send(xml)
   end
 
+  # Send the specified XML to Trufina's servers
   def send(xml)
     # Connection Info
     api = Net::HTTP.new( domain, 443 )
@@ -98,7 +136,7 @@ class Trufina
     # OK, execute the actual call
     response = api.request(method_call)
     raise NetworkError.new(response.msg) unless response.is_a?(Net::HTTPSuccess)
-    return response.body
+    return Trufina::XML.new(response.body)
   end
   
   # Renders the appropriate template for the specified method call
