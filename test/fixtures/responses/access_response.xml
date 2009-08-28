@@ -1,0 +1,13 @@
+<?xml version=" 1.0" encoding="UTF-8"?> 
+<TrufinaAccessResponse>
+  <PRT> Tue Aug 14 15:27:11 EDT 2007</PRT>
+  <AccessResponse>
+    <Name state="verified" age="2007-09-06 15:06:43.0" charged="false">
+      <First state="verified" status="present">John</First>
+    </Name>
+    <Age state="verified" age="2007-09-06 15:06: 43.0" charged="false" status="present">43</Age>
+    <ResidenceAddress charged="false">
+      <State state="verified" status="present">CA</State>
+    </ResidenceAddress>
+  </AccessResponse>
+</TrufinaAccessResponse>

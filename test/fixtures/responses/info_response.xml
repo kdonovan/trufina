@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrufinaInfoResponse>
+  <TNID>127</TNID>
+  <PRT> Tue Aug 14 15:27:11 EDT 2007</PRT>
+  <PUR>206</PUR>
+  <AccessResponse>
+    <Name state="verified" age="2007-09-10 10:17:02.0" charged="false">
+      <First state="verified" status="present">John</First>
+    </Name>
+    <Age state="verified" age="2007-09-10 10:17:02.0" charged="false" status="present">43</Age>
+    <ResidenceAddress charged="false">
+      <State state="verified" status="present">CA</State>
+      <StreetAddress state="verified" status="present">1 Main Street</StreetAddress>
+      <StreetAddress state="verified" status="present">Suite E</StreetAddress>
+      <City state="verified" status="present">Burlingame</City>
+      <PostalCode state="verified" status="present">94010</PostalCode>
+    </ResidenceAddress>
+  </AccessResponse>
+</TrufinaInfoResponse>

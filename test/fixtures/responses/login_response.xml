@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrufinaLoginResponse xmlns="http://www.trufina.com/truapi/1/0">
+  <PRT>* Example PRT *</PRT>
+  <PLID>KXH-vW6hKrvZK</PLID>
+</TrufinaLoginResponse>

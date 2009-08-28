@@ -2,7 +2,9 @@ require 'net/http'
 require 'net/https'
 require 'ostruct'
 
+
 require 'nokogiri'
+
 
 class Trufina
   class TrufinaException < StandardError; end
@@ -120,8 +122,8 @@ class Trufina
       when String, Symbol   # Finally we actually do something -- build the actual method
         short_name =build_name(node)
         long_name = build_name(node, name_prefix)
-        puts " #{long_name} (#{node.to_s.underscore}) - #{xpath_prefix}/#{node}"
-        puts "     (name_prefix: #{name_prefix})"
+        # puts " #{long_name} (#{node.to_s.underscore}) - #{xpath_prefix}/#{node}"
+        # puts "     (name_prefix: #{name_prefix})"
         
         # Create a method whose name reflects the full node traversal to this point:
         # e.g. access_response_residence_address_postal_code for access_response > 
@@ -163,10 +165,13 @@ class Trufina
     # Allows access like:
     # 
     # resp = Trufina::XML::InfoResponse.new(xml)
-    # resp.name
-    # 
+    # resp.name_first (or just resp.first if it hasn't already been defined)
     # 
     create_accessors INFO_ITEMS
+    
+    def returned_info
+      self.created_accessors.select{|a| !self.send(a).blank?} - ['access_response']
+    end
   end
   
   
@@ -195,13 +200,17 @@ class Trufina
     staging! # TODO - default to production once done testing
   end
   
-  
+  # FOR TESTING -- read in xml fixture files
+  def self.read(xml_file)
+    response_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'test', 'fixtures', 'responses'))
+    File.read( File.join(response_dir, "#{xml_file}.xml") )
+  end
     
   # Creates and sends a login request for the specified PRT
   # a = Trufina.new.login_request(Time.now)
   def login_request(prt)
     xml = render(:login_request, LoginRequest.new(prt))
-    send(xml).plid
+    send(xml)
   end
 
   # Given a PRT, send the login request an return the redirect URL
@@ -213,7 +222,7 @@ class Trufina
   # to us, Trufina will ping us with an access_notification to let us know
   # it's there and we should ask for it.
   def redirect_url(prt, opts = {})
-    plid = login_request(prt)
+    plid = login_request(prt).plid
     redirect_url_from_plid( plid, opts )
   end
 
@@ -232,7 +241,8 @@ class Trufina
   # Given a TNID, send info request
   def info_request(tnid)
     xml = render(:info_request, InfoRequest.new(tnid))
-    send(xml)
+    data = send(xml)
+    {:pur => data.pur, :prt => data.prt, :data => data.returned_info}
   end
 
   
@@ -265,6 +275,8 @@ class Trufina
     # OK, execute the actual call
     response = api.request(method_call)
     raise NetworkError.new(response.msg) unless response.is_a?(Net::HTTPSuccess)
+    debugger
+    puts response.body
     return Trufina::XML.new(response.body)
   end
   

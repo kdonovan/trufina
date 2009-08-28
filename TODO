@@ -1,7 +1,23 @@
-* Keep working until all implemented
+* Parsing responses 
+  -- handle multiple StreetAddress nodes for ResidenceAddress
+  -- add MailingAddress to parsing, or remove Residence qualifier
+* Clean out stuff from before HappyMapper
+* Do something similar to responses for Requests
+  - figure out how to take in a bunch of seed data and request data and output the desired xml
 
+
+FILL IN THESE AND SIMILAR FROM SCHEMA:
+  Is the Trufina username available via the API?
+    Yes, use the TrufinaUsername element to request the username of the Trufina user.   Refer to the truapi.xsd schema for information about this element.  
+  What does the comparison string look like for the Age element?  Say I want to verify someone is over 18?
+    <Age comparison=">17"/>
+
+
+
+* Keep working until all implemented
 * Make class methods, so Trufina.redirect_url, not Trufina.new.redirect_url
 * Figure out how to best handle creation on the fly of request and seed data
 
+* Fix requires in init.rb to be relative to file, not RAILS_ROOT (if still exists)
 * Update template config yaml file to include all necessary fields
 * Remove this TODO file :)
