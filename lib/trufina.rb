@@ -106,18 +106,21 @@ class Trufina
     '/WebServices/API/'
   end
   
-  def redirect_url(plid, demo = false)
-    path = (staging? && demo) ? "/DemoPartnerLogin/Login/#{plid}" : "/PartnerLogin/Login/#{plid}"
-    "http://#{domain}#{path}"
-  end
-  
-  
+    
   # Creates and sends a login request for the specified PRT
   # a = Trufina.new.login_request(Time.now)
   def login_request(prt)
     xml = render(:login_request, LoginRequest.new(prt))
-    send(xml)
+    send(xml).plid
   end
+
+  # Given a PRT, send the login request an return the redirect URL
+  def redirect_url(prt, opts = {})
+    plid = login_request(prt)
+    redirect_url_from_plid( plid, opts )
+  end
+
+  protected
 
   # Send the specified XML to Trufina's servers
   def send(xml)
@@ -139,6 +142,12 @@ class Trufina
     return Trufina::XML.new(response.body)
   end
   
+  # Given a PLID (from a login_request), return a url to send the user to
+  def redirect_url_from_plid(plid, opts = {})
+    path = (staging? && opts[:demo]) ? "/DemoPartnerLogin/DemoLogin/#{plid}" : "/PartnerLogin/Login/#{plid}"
+    "http://#{domain}#{path}"
+  end
+  
   # Renders the appropriate template for the specified method call
   def render(template_name, template_binding_object)
     template_file = File.join(File.dirname(__FILE__), '..', 'templates', "#{template_name}.erb")
@@ -149,3 +158,13 @@ class Trufina
   end
   
 end
+
+# prt = Time.now # later on use user ID
+# api = Trufina.new
+# 
+# plid = api.login_request( prt )
+# api.redirect_url(plid)
+
+
+# Can access api.login_request directly, but easiest just to do:
+# Trufina.new.redirect_url 'some_id', :demo => true

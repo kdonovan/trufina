@@ -1,4 +1,7 @@
 * Keep working until all implemented
 
+* Make class methods, so Trufina.redirect_url, not Trufina.new.redirect_url
+* Figure out how to best handle creation on the fly of request and seed data
+
 * Update template config yaml file to include all necessary fields
 * Remove this TODO file :)
