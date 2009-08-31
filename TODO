@@ -1,5 +1,8 @@
+* Switch to jimmyz's happymapper repo for to_xml support'
+  - how to create new requests
+* handle edge case of street_address, which to_xml yeilds <.> tag
+
 * Parsing responses 
-  -- handle multiple StreetAddress nodes for ResidenceAddress
   -- add MailingAddress to parsing, or remove Residence qualifier
 * Clean out stuff from before HappyMapper
 * Do something similar to responses for Requests

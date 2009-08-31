@@ -1,3 +1,7 @@
 # Include hook code here
-require File.join(File.dirname(__FILE__), 'lib', 'responses.rb')
-require File.join(File.dirname(__FILE__), 'lib', 'trufina.rb')
+base = File.dirname(__FILE__)
+require 'happymapper'
+require File.join(base, 'lib', 'custom_elements.rb')
+require File.join(base, 'lib', 'requests.rb')
+require File.join(base, 'lib', 'responses.rb')
+require File.join(base, 'lib', 'trufina.rb')

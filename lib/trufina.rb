@@ -2,9 +2,7 @@ require 'net/http'
 require 'net/https'
 require 'ostruct'
 
-
 require 'nokogiri'
-
 
 class Trufina
   class TrufinaException < StandardError; end
@@ -13,167 +11,12 @@ class Trufina
   class MissingToken < TrufinaException; end
   class NetworkError < TrufinaException; end
   class RequestFailure < TrufinaException; end
-
-  # Base class for template binding objects.  Each remote call has a local template, and
-  # template rendering grabs the binding from a TemplateBinding object to lookup variables.
-  class TemplateBinding
-    def initialize *args
-      @config = Trufina.config
-    end
-
-    def get_binding
-      binding
-    end
-  end
-
-  # TemplateBinding object for login requests
-  class LoginRequest < TemplateBinding
-    def initialize(prt)
-      super
-      raise MissingToken.new("No PRT provided") if prt.blank?
-      @prt = prt
-    end
-  end
-
-  # TemplateBinding object for info requests
-  class InfoRequest < TemplateBinding
-    def initialize(tnid)
-      super
-      raise MissingToken.new("No TNID provided") if tnid.blank?
-      @tnid = tnid
-    end
-  end
-
   
   # Helper method for reading in config data
   def self.recursively_symbolize_keys!(hash)
     hash.symbolize_keys!
     hash.values.select{|v| v.is_a? Hash}.each{|h| recursively_symbolize_keys!(h)}
   end
-  
-  
-    
-  class XML
-    # TODO - some trufina responses HAVE no namespace? wtf? fix this to detect that dynamically
-    def namespace
-      # "http://www.trufina.com/truapi/1/0"
-      @xml.attributes['xmlns']
-    end
-        
-    attr_accessor :xml
-    
-    def initialize(str)
-      @xml = Nokogiri::XML(str).root
-      check_for_errors
-      return @xml
-    end
-    
-    def name
-      @xml.name
-    end
-    
-    # Check for errors. TrufinaRequestFailure is clear, and has errors in the Trufina namespace
-    # Unknown TNID error from info_request, on the other hand, has no special root name but has Error 
-    # node with no namespace
-    def check_for_errors
-      if name == 'TrufinaRequestFailure' || @xml.xpath('//Error').first
-        error = @xml.xpath('//Error').first
-        error ||= @xml.xpath('//xmlns:Error').first # This must be second, because raises exception if no namespace defined
-        raise RequestFailure.new("#{error.attributes['kind']}: #{error.text}")
-      end
-    end
-    
-    AUTH_ITEMS = %w(PRT PLID TNID PUR)
-    AUTH_ITEMS.each do |token|
-      define_method token.downcase do
-        node = xpath_with_ns("//#{token}").first
-        node ? node.text : nil
-      end
-    end
-
-    # Detect if using a namespace, and use it if appropriate
-    def xpath_with_ns(xpath)
-      results = if namespace
-        # Split '//node' or '/node' into '//' or '/' and 'node', insert the namespace, and recombine
-        prefix = xpath[/\A\W+/]
-        node_string = xpath[prefix.length, xpath.length]
-        xpath = "#{prefix}trufina:#{node_string}"
-        @xml.search( xpath, 'trufina' => namespace )
-      else
-        @xml.search( xpath )
-      end
-    end
-
-    # Trufina::XML.create_accessors 'ATop' => ['a', 'b', {'c' => ['c1','c2','c3']}]
-    # x = Trufina::XML.new("<ATop><a>aaa</a><b>bbb</b><c><c1>ccc111</c1><c2>ccc222</c2><c3>ccc333</c3></c></ATop>")
-    @@created_accessors = []
-    cattr_reader :created_accessors
-    def self.create_accessors(node, xpath_prefix = '/', name_prefix = nil)
-      case node
-      when Array  # Simple -- just recurse to all array members
-        node.each {|n| create_accessors(n, xpath_prefix, name_prefix) }
-
-      when Hash   # Here we add nesting -- push each key on the prefix stack, then recurse for all values
-        node.keys.each do |key|
-          create_accessors(key, xpath_prefix, name_prefix)
-          create_accessors(node[key], "#{xpath_prefix}/#{key}", build_name(key, name_prefix))
-        end
-
-      when String, Symbol   # Finally we actually do something -- build the actual method
-        short_name =build_name(node)
-        long_name = build_name(node, name_prefix)
-        # puts " #{long_name} (#{node.to_s.underscore}) - #{xpath_prefix}/#{node}"
-        # puts "     (name_prefix: #{name_prefix})"
-        
-        # Create a method whose name reflects the full node traversal to this point:
-        # e.g. access_response_residence_address_postal_code for access_response > 
-        # residence_address > postal_code
-        define_method long_name do
-          xpath_with_ns("#{xpath_prefix}/#{node}")
-        end
-        @@created_accessors << long_name
-        
-        # Alias e.g. access_response_residence_address_postal_code to postal_code, 
-        # unless postal_code has already been defined as something else
-        unless @@created_accessors.include?(short_name)
-          define_method short_name do
-            long_name
-          end
-        end
-      end
-    end
-    
-    def self.build_name(current, prefix = nil)
-      [prefix, current].map{|n| n.to_s.underscore}.select{|n| !n.blank?}.join('_')
-    end
-    
-  end
-  
-  class XML::InfoResponse < XML
-    INFO_ITEMS = [
-      'AccessResponse' => [
-        {'Name' => %w(Prefix First Middle MiddleInitial Surname Suffix)},
-        'Age',
-        'DateOfBirth',
-        'CountryOfBirth',
-        'Phone',
-        {'ResidenceAddress' => %w(StreetAddress StreetAddress City State PostalCode)},
-        'Last4SSN'
-      ]
-    ]
-    
-    # Allows access like:
-    # 
-    # resp = Trufina::XML::InfoResponse.new(xml)
-    # resp.name_first (or just resp.first if it hasn't already been defined)
-    # 
-    create_accessors INFO_ITEMS
-    
-    def returned_info
-      self.created_accessors.select{|a| !self.send(a).blank?} - ['access_response']
-    end
-  end
-  
   
   # Setting class-wide configuration info from yaml file
   begin
@@ -182,7 +25,7 @@ class Trufina
     recursively_symbolize_keys!(@@config)
     cattr_reader :config
   rescue
-    raise ConfigFileNotFoundError
+    raise ConfigFileNotFoundError.new("No config at #{@@config_path}")
   end
   
   # Setting instance-specific runtime mode (production / staging)
@@ -245,7 +88,7 @@ class Trufina
     {:pur => data.pur, :prt => data.prt, :data => data.returned_info}
   end
 
-  
+
 
   protected
 
@@ -294,7 +137,6 @@ class Trufina
     template = ERB.new(File.read(template_file))
     template.result(template_binding_object.get_binding)
   end
-  
 end
 
 # prt = Time.now # later on use user ID
