@@ -55,10 +55,44 @@ class Trufina
   module Elements
     RESPONSE_XML_ATTRIBUTES = {:state => String, :age => String, :charged => String, :status => String, :errors => String }
 
+    module EasyElementAccess
+      
+      # Shortcut to collecting any information that's present and available
+      def present_and_verified
+        yes = []
+        self.class.elements.map(&:method_name).each  do |p|
+          next unless val = self.send(p)
+          
+          if val.respond_to?(:present_and_verified)
+            yes << {p.to_sym => val.present_and_verified}
+          else
+            yes << {p.to_sym => val} if val.state == 'verified' && val.status == 'present'
+          end
+        end
+        yes
+      end
+      
+      def pending
+        yes = []
+        self.class.elements.map(&:method_name).each  do |p|
+          next unless val = self.send(p)
+          
+          if val.respond_to?(:present_and_verified)
+            yes << {p.to_sym => val.pending}
+          else
+            yes << {p.to_sym => val} if val.state == 'pending'
+          end
+        end
+        yes
+      end
+      
+    end
+    
     # Encapsulates the various name components Trufina accepts
     class Name
       include AllowCreationFromHash
       include HappyMapper
+      include EasyElementAccess
       tag 'Name'
   
       element :prefix,  String, :tag => 'Prefix',               :attributes => RESPONSE_XML_ATTRIBUTES
@@ -73,7 +107,9 @@ class Trufina
     class StreetAddress
       include AllowCreationFromHash
       include HappyMapper
+      include EasyElementAccess
       tag 'StreetAddress'
+      
       element :name, String, :tag => '.', :attributes => RESPONSE_XML_ATTRIBUTES
     end
 
@@ -81,6 +117,7 @@ class Trufina
     class ResidenceAddress
       include AllowCreationFromHash
       include HappyMapper
+      include EasyElementAccess
       tag 'ResidenceAddress'
 
       has_many :street_addresses, StreetAddress,  :tag => 'StreetAddress',  :attributes => RESPONSE_XML_ATTRIBUTES
@@ -93,6 +130,7 @@ class Trufina
     class AccessResponseGroup
       include AllowCreationFromHash
       include HappyMapper
+      include EasyElementAccess
       tag 'AccessResponse'
   
       element :name,              Name,     :single => true,          :attributes => RESPONSE_XML_ATTRIBUTES

@@ -1,7 +1,7 @@
 class Trufina
   class Config
     cattr_accessor  :credentials, :staging_access, :endpoints,
-                    :app_root, :config_file, :mode
+                    :app_root, :config_file, :mode, :debug
     
     # Allow range of config locations
     self.app_root          = RAILS_ROOT if defined?(RAILS_ROOT)
@@ -53,6 +53,9 @@ class Trufina
       %w(staging production).each do |mode|
         define_method("#{mode}!"){ @@mode = mode }
         define_method("#{mode}?"){ @@mode == mode }
+      end
+      def debug?
+        !!@@debug
       end
     end
     

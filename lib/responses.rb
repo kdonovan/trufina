@@ -8,6 +8,12 @@ class Trufina
     def self.parse(raw_xml)
       noko = Nokogiri::XML(raw_xml)
       
+      if Trufina::Config.debug?
+        puts "Received XML:\n\n"
+        puts noko.to_xml
+        puts "\n\n"
+      end
+      
       # Try to find an appropriate local happymapper class
       begin
         klass = "Trufina::#{noko.root.name.gsub('Trufina', '')}".constantize
