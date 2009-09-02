@@ -1,115 +1,135 @@
-# # Check for errors. TrufinaRequestFailure is clear, and has errors in the Trufina namespace
-# # Unknown TNID error from info_request, on the other hand, has no special root name but has Error 
-# # node with no namespace
-# def check_for_errors
-#   if name == 'TrufinaRequestFailure' || @xml.xpath('//Error').first
-#     error = @xml.xpath('//Error').first
-#     error ||= @xml.xpath('//xmlns:Error').first # This must be second, because raises exception if no namespace defined
-#     raise RequestFailure.new("#{error.attributes['kind']}: #{error.text}")
-#   end
-# end
-
 # These classes are used to generate requests to the Trufina API.
 class Trufina
-  
-  class Request
-    # Virtual class, subclasses implement actual API requests
-    attr_accessor :elements, :root_name, :namespace
-    DEFAULT_NAMESPACE = 'http://www.trufina.com/truapi/1/0'
+  API_NAMESPACE_URL = "http://www.trufina.com/truapi/1/0"
+  class BaseRequest
+    include AllowCreationFromHash
 
-    def initialize(ns = :default)
-      @root_name = self.class.name.gsub('::', '')
-      @namespace = ns == :default ? DEFAULT_NAMESPACE : ns
-      @elements = []
+    def initialize(hash = {})
+      super # init method in AllowCreationFromHash
+      autofill_from_config
+    end
+
+    def render
+      # validate
+      to_xml
     end
     
-    def self.element(name, opts = {})
-      elem = RequestElement.new(name, opts)
-      self << elem
+    protected
+    
+    # Automatically assign any required auth or URL information from the global config
+    def autofill_from_config
+      self.pid ||= Config.credentials[:PID] if self.respond_to?(:pid=)
+      self.pak ||= Config.credentials[:PAK] if self.respond_to?(:pak=)
       
+      # Note: URLs are optional fields, but prefilling from config anyway
+      self.cancel_url  ||= Config.endpoints[:cancel]  if self.respond_to?(:cancel_url=)
+      self.success_url ||= Config.endpoints[:success] if self.respond_to?(:success_url=)
+      self.failure_url ||= Config.endpoints[:failure] if self.respond_to?(:failure_url=)
     end
     
-    def <<(elem)
-      return false unless elem.is_a?(RequestElement)
-      @elements << elem
-      return true
+    # Ensure all required data is set BEFORE sending the request off to the remote API
+    def validate
+      missing_elements = self.class.elements.map(&:name).select {|e| !self.respond_to?(e) || self.send(e).nil?}
+      raise MissingRequiredElements.new(missing_elements.join(', ')) unless missing_elements.empty?
+
+      missing_attributes = self.class.attributes.map(&:name).select {|a| !self.respond_to?(a) || self.send(a).nil?}
+      raise MissingRequiredAttributes.new(missing_attributes.join(', ')) unless missing_attributes.empty?
     end
     
-    # def to_xml
-    #   xml =  [%{<?xml version="1.0" encoding="UTF-8"?>}]
-    #   namespace_attrib = namespace.blank? ? '' : %Q{ xmlns="#{namespace}"}
-    #   xml << %Q{<#{root_name}#{namespace_attrib}>}
-    #   
-    #   # Add the elements
-    #   elements.each {|elem| xml << elem.to_xml }
-    #   
-    #   xml << "</#{root_name}>"
-    #   xml.join("\n")
+  end
+  
+  # When we receive a TrufinaAccessNotification from Trufina, we can then use
+  # the included TNID to receive shared user data (note the TNID is valid for 
+  # 14 days) with an InfoRequest.  We receive this notification when the user 
+  # changes their info or share permissions, or after we send a TrufinaAccessRequest.
+  # 
+  # Similar to LoginInfoRequest, but no user interaction.
+  class InfoRequest < BaseRequest
+    include HappyMapper
+    tag 'TrufinaInfoRequest'
+    namespace_url API_NAMESPACE_URL
+    
+    element :pid,   String, :tag => 'PID'
+    element :tnid,  String, :tag => 'TNID'
+    element :pak,   String, :tag => 'PAK'
+  end
+  
+  # We redirect user to Trufina, they complete registration, Trufina redirects
+  # them back to our success url with an attached TLID.  We then have 15 minutes
+  # to use this TLID to retreive the shared data with a LoginInfoRequest.
+  # 
+  # Similar to InfoRequest, but requires user interaction.
+  class LoginInfoRequest < BaseRequest
+    include HappyMapper
+    tag 'TrufinaLoginInfoRequest'
+    namespace_url API_NAMESPACE_URL
+    
+    element :pid,   String, :tag => 'PID'
+    element :tlid,   String, :tag => 'TLID'
+    element :pak,   String, :tag => 'PAK'
+  end
+  
+  # Once we've completed the login flow and retreived our information,
+  # if we want additional information later we ask for it with the
+  # AccessRequest.
+  # 
+  # The AccessResponse will contain a status of "pending" for the
+  # additional credentials, and Trufina will notify the user via email
+  # that a partner is requesting a new credential.  Once the user grants 
+  # permission for that credential, the Partner will be notified via a 
+  # AccessNotification.
+  class AccessRequest < BaseRequest
+    include HappyMapper
+    tag 'TrufinaAccessRequest'
+    namespace_url API_NAMESPACE_URL
+    
+    element :pid,   String, :tag => 'PID'
+    element :prt,   String, :tag => 'PRT'
+    element :pak,   String, :tag => 'PAK'
+    element :pur,   String, :tag => 'PUR'
+
+    element :data,  Elements::AccessRequest, :single => true
+  end
+  
+  
+  # When we wan to send a user to Trufina to register and/or provide their
+  # information and allow us access, we send this to Trufina, who sends us
+  # back a PLID we can use to generate the redirect URL to which we should
+  # send the user.
+  class LoginRequest < BaseRequest
+    # TODO -- DOCS UNCLEAR! MAY need a xlmns="" for each of these elements..?
+    include HappyMapper
+    tag 'TrufinaLoginRequest'
+    namespace_url API_NAMESPACE_URL
+    
+    element :pid,   String, :tag => 'PID'
+    element :prt,   String, :tag => 'PRT'
+    element :pak,   String, :tag => 'PAK'
+    
+    element :cancel_url,    String, :tag => 'CancelURL'
+    element :success_url,   String, :tag => 'SuccessURL'
+    element :failure_url,   String, :tag => 'FailureURL'
+    
+    element :data,  Elements::AccessRequest, :single => true
+    element :seed,  Elements::SeedInfoGroup, :single => true
+    
+    # # Syntactic sugar to easily allow adding seed data from a hash after the class has already been created
+    # def seed_with(info)
+    #   seed = Elements::SeedInfoGroup.new(hash)
     # end
   end
   
-  class InfoRequest < Request
-  end
-  
-  
-  class RequestElement
-    attr_accessor :name, :value, :attributes
-    def initialize(name, value, opts = {})
-      @name = name
-      @tag_name = opts[:tag] || name.camelcase
-      @value = value
-      @attributes = opts[:attributes] || []
-    end
-  end
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  # Base class for template binding objects.  Each remote call has a local template, and
-  # template rendering grabs the binding from a TemplateBinding object to lookup variables.
-  class TemplateBinding
-    def initialize *args
-      @config = Trufina.config
-    end
-
-    def get_binding
-      binding
-    end
-  end
-
-  # TemplateBinding object for login requests
-  class LoginRequest < TemplateBinding
-    def initialize(prt)
-      super
-      raise MissingToken.new("No PRT provided") if prt.blank?
-      @prt = prt
-    end
-  end
-
-  # TemplateBinding object for info requests
-  # class InfoRequest < TemplateBinding
-  #   def initialize(tnid)
-  #     super
-  #     raise MissingToken.new("No TNID provided") if tnid.blank?
-  #     @tnid = tnid
-  #   end
-  # end
-
-  
-  # Helper method for reading in config data
-  def self.recursively_symbolize_keys!(hash)
-    hash.symbolize_keys!
-    hash.values.select{|v| v.is_a? Hash}.each{|h| recursively_symbolize_keys!(h)}
-  end
-  
-  
 end
+
+__END__
+a=Trufina::AccessRequest.new({:prt => 'pprrtt', :pur => 'meow', :data => {:age => [], :name => [:first, :suffix]}})
+a=Trufina::AccessRequest.new({:prt => 'pprrtt', :pur => 'meow', :data => [:age, {:name => [:first, :suffix]}, {:residence_address => [:state, :city]}]})
+puts a.render
+
+a=Trufina::LoginRequest.new({:prt => 'pprrtt', :data => {:age => '', :name => [:first, :suffix], :residence_address => [:city, :state]}, :seed => {:name => {:first => 'Bob', :suffix => 'Trufie'}, :birth_date => Time.now.to_s}})
+
+a=Trufina::LoginRequest.new({:prt => 'pprrtt', :data => {:age => '', :name => [:first, :suffix], :residence_address => [:city, :state]}})
+# a.seed = {:name => {:first => 'Bob', :suffix => 'Trufie'}, :birth_date => Time.now.to_s}
+a.seed_with({:name => {:first => 'Bob', :suffix => 'Trufie'}, :birth_date => Time.now.to_s})
+
+# !! HANDLE REQUIRE_NOT_NIL, which is mashing together every class method
