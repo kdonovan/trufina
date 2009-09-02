@@ -1,0 +1,1064 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns="http://www.trufina.com/truapi/1/0"
+  targetNamespace="http://www.trufina.com/truapi/1/0"
+  elementFormDefault="qualified">
+
+  <xs:element name="TrufinaLoginRequest" type="loginRequestType"/>
+  <xs:element name="TrufinaLoginResponse" type="loginResponseType"/>
+  <xs:element name="TrufinaAccessNotification" type="notificationType"/>
+  <xs:element name="TrufinaInfoRequest" type="infoRequestType"/>
+  <xs:element name="TrufinaInfoResponse" type="infoResponseType"/>
+  <xs:element name="TrufinaLoginInfoRequest" type="loginInfoRequestType"/>
+  <xs:element name="TrufinaLoginInfoResponse" type="loginInfoResponseType"/>
+  <xs:element name="TrufinaAccessRequest" type="dataRequestType"/>
+  <xs:element name="TrufinaAccessResponse" type="dataResponseType"/>
+  <xs:element name="TrufinaRequestFailure" type="requestFailureType"/>
+
+  <xs:annotation><xs:documentation>
+    Attribute and group definitions
+
+  </xs:documentation></xs:annotation>
+
+  <xs:attributeGroup name="responseAttributes">
+    <xs:attribute name="state" type="verificationState" use="required"/>
+    <xs:attribute name="age" type="xs:duration" use="optional"/>
+    <xs:attribute name="charged" type="xs:boolean" default="false"/>
+  </xs:attributeGroup>
+
+  <xs:attributeGroup name="atomicResponseAttributes">
+    <xs:attributeGroup ref="responseAttributes"/>
+    <xs:attribute name="status" type="valueStatus" use="optional"/>
+  </xs:attributeGroup>
+
+  <xs:annotation><xs:documentation>
+    Complex type definitions used later
+  </xs:documentation></xs:annotation>
+
+  <xs:complexType name="stringRequestType">
+    <xs:annotation><xs:documentation>
+      This type is used for all string requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="stringComparisonValue"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="stringResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for all string responses
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="stringComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+
+  </xs:complexType>
+
+  <xs:complexType name="subordinateStringRequestType">
+    <xs:annotation><xs:documentation>
+      Used inside of the name and address types because of restrictions on attributes
+    </xs:documentation></xs:annotation>
+    <xs:complexContent>
+      <xs:restriction base="stringRequestType">
+        <xs:attribute name="maxAge" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+
+  </xs:complexType>
+  <xs:complexType name="subordinateStringResponseType">
+    <xs:annotation><xs:documentation>
+      Used inside of name and address types because of restrictions on attributes
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="stringResponseType">
+        <xs:attribute name="age" use="prohibited"/>
+        <xs:attribute name="charged" use="prohibited"/>
+      </xs:extension>
+
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="phoneRequestType">
+    <xs:annotation><xs:documentation>
+      This type is used for phone number requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="stringComparisonValue"/>
+  </xs:complexType>
+  <xs:complexType name="phoneResponseType">
+    <xs:annotation><xs:documentation>
+
+      This type is used for phone responses
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="phoneNumber">
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="stringComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="phoneSeedType">
+
+    <xs:annotation><xs:documentation>
+      This type is used to represent phone seed data
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="phoneNumber">
+        <xs:attribute name="timeframe" type="timeframe" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="postalCodeRequestType">
+    <xs:annotation><xs:documentation>
+      This type is used for postal code requests
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="postalCodeNumber">
+        <xs:attribute name="comparison" type="stringComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="postalCodeResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for postal code responses
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="postalCodeNumber">
+        <xs:attribute name="state" type="verificationState" use="required"/>
+        <xs:attribute name="status" type="valueStatus" use="optional"/>
+        <xs:attribute name="comparison" type="stringComparisonValue"/>
+
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="ssnRequestType">
+    <xs:annotation><xs:documentation>
+      This type is used for full social security number requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="numericComparisonValue"/>
+  </xs:complexType>
+
+  <xs:complexType name="ssnResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for full social security number responses
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="ssnType">
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="numericComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+
+  </xs:complexType>
+
+  <xs:complexType name="last4ssnRequestType">
+    <xs:annotation><xs:documentation>
+      This type is used for last 4 digits of social security number requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="numericComparisonValue"/>
+  </xs:complexType>
+  <xs:complexType name="last4ssnResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for last 4 digits of social security number responses
+    </xs:documentation></xs:annotation>
+
+    <xs:simpleContent>
+      <xs:extension base="last4ssnType">
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="numericComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="dateRequestType">
+    <xs:annotation><xs:documentation>
+
+      This type is used for date requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="dateComparisonValue"/>
+  </xs:complexType>
+  <xs:complexType name="dateResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for date responses
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:date">
+
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="dateComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="maybeNumberType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]*"/>
+    </xs:restriction>
+
+  </xs:simpleType>
+  <xs:complexType name="numericRequestType">
+    <xs:annotation><xs:documentation>
+      This type is used for numeric requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="numericComparisonValue"/>
+  </xs:complexType>
+  <xs:complexType name="numericResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for numeric responses
+    </xs:documentation></xs:annotation>
+
+    <xs:simpleContent>
+      <xs:extension base="maybeNumberType">
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="numericComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="subordinateNumericRequestType">
+    <xs:annotation><xs:documentation>
+
+      Used inside of name and address types because of restrictions on attributes
+    </xs:documentation></xs:annotation>
+    <xs:complexContent>
+      <xs:restriction base="numericRequestType">
+        <xs:attribute name="maxAge" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="isoCountryRequestType">
+    <xs:annotation><xs:documentation>
+
+      This type is used for country requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="stringComparisonValue"/>
+  </xs:complexType>
+
+  <xs:complexType name="isoCountryResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for country responses
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+
+      <xs:extension base="isoCountrySpecifier">
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="stringComparisonValue"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="subordinateIsoCountryRequestType">
+    <xs:annotation><xs:documentation>
+      Used inside of addess types because of restrictions on attributes
+    </xs:documentation></xs:annotation>
+
+    <xs:complexContent>
+      <xs:restriction base="isoCountryRequestType">
+        <xs:attribute name="maxAge" use="prohibited"/>
+      </xs:restriction>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="subordinateIsoCountryResponseType">
+    <xs:annotation><xs:documentation>
+      Used inside of ddress types because of restrictions on attributes
+    </xs:documentation></xs:annotation>
+
+    <xs:simpleContent>
+      <xs:extension base="isoCountrySpecifier">
+        <xs:attribute name="comparison" type="stringComparisonValue" use="optional"/>
+        <xs:attribute name="value" type="valueStatus" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="isoCountrySpecifier">
+    <xs:annotation><xs:documentation>ISO standard country specification</xs:documentation></xs:annotation>
+
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="us"/>
+      <xs:enumeration value="US"/>
+      <xs:enumeration value="ca"/>
+      <xs:enumeration value="CA"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="crimRequestType">
+    <xs:annotation><xs:documentation>
+
+      This type is used for criminal background check requests
+    </xs:documentation></xs:annotation>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+    <xs:attribute name="comparison" type="crimComparisonValue"/>
+  </xs:complexType>
+
+  <xs:complexType name="crimResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for criminal background check responese
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+
+      <xs:extension base="criminalClassification">
+        <xs:attributeGroup ref="atomicResponseAttributes"/>
+        <xs:attribute name="comparison" type="crimComparisonValue" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="criminalClassification">
+    <xs:annotation><xs:documentation>
+      The value stored in the user's criminal background check results.
+      Valid values are:
+      clear_norecords  = Clear in the available public records.
+      clear_traffic    = Only traffic-related infractions.
+      clear_minor      = At least one minor, non-traffic-related conviction
+      open_minor       = At least one minor, non-traffic-related conviction is pending.
+      open_significant = At least one significant conviction, and/or repeated minor convictions is/are pending.
+      not_clear        = At least one significant conviction, and/or repeated minor convictions. 
+      unknown          = An unrecognized classification was returned.
+    </xs:documentation></xs:annotation>
+
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="clear_norecords"/>
+      <xs:enumeration value="clear_traffic"/>
+      <xs:enumeration value="clear_minor"/>
+      <xs:enumeration value="open_minor"/>
+      <xs:enumeration value="open_significant"/>
+      <xs:enumeration value="not_clear"/>
+      <xs:enumeration value="unknown"/>
+    </xs:restriction>
+
+  </xs:simpleType>
+
+  <xs:complexType name="streetAddressTypeSeed">
+    <xs:annotation>
+      <xs:documentation>
+        streetAddress type is used to represent physical addresses
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="StreetAddress" type="xs:string" minOccurs="0" maxOccurs="2">
+        <xs:annotation><xs:documentation>
+
+          Zero to two street elements.  May contain numbers for more specific data.
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="City" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one city specifier
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="State" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+
+          Zero or one state specifier
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="PostalCode" type="postalCodeNumber" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one postal code
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="County" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+
+          Zero or one county name
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="Country" type="isoCountrySpecifier" minOccurs="0" maxOccurs="1" default="us">
+        <xs:annotation><xs:documentation>
+          Zero or one country name (us is default)
+        </xs:documentation></xs:annotation>
+      </xs:element>    
+    </xs:sequence>
+    <xs:attribute name="timeframe" type="timeframe" use="required"/>
+
+  </xs:complexType>
+
+  <xs:complexType name="streetAddressTypeRequest">
+    <xs:annotation>
+      <xs:documentation>
+        streetAddress type is used to represent physical addresses
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="StreetAddress" type="subordinateStringRequestType" minOccurs="0" maxOccurs="2">
+        <xs:annotation><xs:documentation>
+
+          Zero to two street elements.  May contain numbers for more specific data.
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="City" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one city specifier
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="State" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+
+          Zero or one state specifier
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="PostalCode" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one postal code
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="County" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+
+          Zero or one county name
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="Country" type="subordinateIsoCountryRequestType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one country name (us is default)
+        </xs:documentation></xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+
+  </xs:complexType>
+
+  <xs:complexType name="streetAddressTypeResponse">
+    <xs:annotation>
+      <xs:documentation>
+        streetAddress type is used to represent physical addresses
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="StreetAddress" type="subordinateStringResponseType" minOccurs="0" maxOccurs="2">
+        <xs:annotation><xs:documentation>
+
+          Zero to two street elements.  May contain numbers for more specific data.
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="City" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one city specifier
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="State" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+
+          Zero or one state specifier
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="PostalCode" type="postalCodeResponseType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one postal code
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="County" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+
+          Zero or one county name
+        </xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="Country" type="subordinateIsoCountryResponseType" minOccurs="0" maxOccurs="1">
+        <xs:annotation><xs:documentation>
+          Zero or one country name (USA is default)
+        </xs:documentation></xs:annotation>
+      </xs:element>
+    </xs:sequence>
+    <xs:attributeGroup ref="responseAttributes"/>
+
+    <xs:attribute name="value" use="prohibited"/>
+  </xs:complexType>
+
+  <xs:simpleType name="prtType">
+    <xs:annotation><xs:documentation>
+      String used as a reference by the partner to identify the request
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="30"/>
+    </xs:restriction>
+
+  </xs:simpleType>
+  <xs:simpleType name="pakType">
+    <xs:annotation><xs:documentation>
+      String assigned by Trufina to Partner to be used for partner authentication
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="50"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="plidType">
+    <xs:annotation><xs:documentation>
+
+      String value used to link the request related to the Login Request to a particular login session
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="15"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="tnidType">
+    <xs:annotation><xs:documentation>
+      String used to denote the Temporary Notification Identification, which is provided 
+      to the Partner once the user has successfully verified and shared their credentials
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+
+      <xs:maxLength value="15"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="tlidType">
+    <xs:annotation><xs:documentation>
+      String used to denote the Temporary Login Identification which is provided to the Partner
+      via an HTTP GET redirect once the user has successfully verified their credentials
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="15"/>
+    </xs:restriction>
+
+  </xs:simpleType>
+  <xs:simpleType name="purType">
+    <xs:annotation><xs:documentation>
+      String used to denote the Partner User Reference, which uniquely identifies 
+      associates a particular user with that Partner.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="20"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ssnType">
+    <xs:annotation><xs:documentation>
+
+      9 digit US Social Security Number
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([0-9]{9})?"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="last4ssnType">
+    <xs:annotation><xs:documentation>
+      Last 4 digits of the US Social Security Number
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+
+      <xs:pattern value="([0-9]{4})?"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="timeframe">
+    <xs:annotation><xs:documentation>
+      Timeframe can be: current, prior, a date, or a range of dates.  
+      Dates are in the fomat YYYY-MM-DD in general, but may contain Year, Year-Month, or Year-Month-Date.
+      Individual dates are considered to be a point in time when this statement is true.  Date ranges are considered
+      to be a range of dates when the statement was true.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(current)|(prior)|([0-9]{4}(-(0[0-9]|1[012])(-([012][0-9]|3[01]))?)?)?(to[0-9]{4}(-(0[0-9]|1[012])(-([012][0-9]|3[01]))?)?)?"/>
+    </xs:restriction>
+
+  </xs:simpleType>
+  <xs:simpleType name="phoneNumber">
+    <xs:annotation><xs:documentation>
+      Phone number.  Either US 10 digit or + and a foreign number
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([0-9]{10})|(\+[0-9]*)"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="postalCodeNumber">
+    <xs:annotation><xs:documentation>
+
+      Postal code number.  US five digit zip code (i.e. 12345).  Zip plus 4 not supported.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([0-9]{5})"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="nameRequestType">
+    <xs:annotation><xs:documentation>
+      Name information in request structure
+    </xs:documentation></xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="Prefix" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="First" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="MiddleName" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="MiddleInitial" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Surname" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Suffix" type="subordinateStringRequestType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="maxAge" type="xs:duration"/>
+
+  </xs:complexType>
+  <xs:complexType name="nameResponseType">
+    <xs:annotation><xs:documentation>
+      Name information in response structure
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="Prefix" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="First" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="MiddleName" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="MiddleInitial" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1"/>
+
+      <xs:element name="Surname" type="subordinateStringResponseType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Suffix" type="suffixResponseType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attributeGroup ref="responseAttributes"/>
+  </xs:complexType>
+  <xs:complexType name="nameSeedType">
+    <xs:annotation><xs:documentation>
+      Name information in seed data structure
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+
+      <xs:element name="Prefix" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="First" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="MiddleName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="MiddleInitial" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Surname" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Suffix" type="suffixType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="suffixType">
+
+    <xs:annotation><xs:documentation>
+      This type is an enumeration of the allowable suffix for a person's name.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="II"/>
+      <xs:enumeration value="III"/>
+      <xs:enumeration value="IV"/>
+      <xs:enumeration value="Jr"/>
+      <xs:enumeration value="Sr"/>
+
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="suffixResponseType">
+    <xs:annotation><xs:documentation>
+      This type is used for controlling the value of a suffix for user's names.
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="suffixType">
+        <xs:attribute name="comparison" type="stringComparisonValue" use="optional"/>
+        <xs:attribute name="value" type="valueStatus" use="optional"/>
+
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="verificationState">
+    <xs:annotation><xs:documentation>
+      Indicates the verification state of the data element's value.
+      verified    : the information is verified
+      unverified  : the information is present but not verified
+      pending     : the information is either not verified or the user hasn't granted access
+      denied      : the user has declined to make any information available
+      duplicate   : an outstanding, pending request for this data exists for this partner
+      unpurchased : the user has granted access, but the data is not free and not currently available
+      parent      : used to indicate an element that contains other elements with verification states.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="verified"/>
+      <xs:enumeration value="unverified"/>
+
+      <xs:enumeration value="pending"/>
+      <xs:enumeration value="denied"/>
+      <xs:enumeration value="duplicate"/>
+      <xs:enumeration value="unpurchased"/>
+      <xs:enumeration value="parent"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="dateSeedType">
+    <xs:annotation><xs:documentation>
+
+      Normal xs:date type but restricted to be between 1900-01-01 and 2100-01-01.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:date">
+      <xs:minInclusive value="1900-01-01"/>
+      <xs:maxInclusive value="2100-01-01"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="usernameSeedType">
+    <xs:annotation><xs:documentation>
+      Normal xs:string type with a minimum length 4 characters of and a maximum length of 100 characters.
+    </xs:documentation></xs:annotation>
+
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[.A-Za-z0-9]{4,100}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="passwordSeedType">
+    <xs:annotation><xs:documentation>
+      Password seed type consists of the hashed password and the algorithm used for encoding it.
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="Hash"          type="HashType"          minOccurs="1" maxOccurs="1" />
+
+      <xs:element name="HashAlgorithm" type="HashAlgorithmType" minOccurs="1" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="HashType">
+    <xs:annotation><xs:documentation>
+      Normal xs:string type with a minimum length 6 characters of and a maximum length of 40 characters.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="40"/>
+      <xs:maxLength value="40"/>
+
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="HashAlgorithmType">
+    <xs:annotation><xs:documentation>
+      Hash algorithm type enumeration.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="sha1"/>
+      <xs:enumeration value="sha256"/>
+    </xs:restriction>
+
+  </xs:simpleType>
+
+  <xs:simpleType name="emailSeedType">
+    <xs:annotation><xs:documentation>
+      Normal xs:string type in the form of xyz@abc.com with a minimum length of 9 characters to maxmimum of 100 characters.
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[a-zA-Z0-9\._%\+\-]{2,47}@[a-zA-Z0-9\.\-]{3,47}\.[a-zA-Z]{2,4}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+
+  <xs:simpleType name="stringComparisonValue">
+    <xs:annotation><xs:documentation>
+      The value used in comparing the particular string data element to that stored in the user's ID card.
+      Examples are:
+      =VA for address/state
+      =20190 for address/zip
+      ~2019  for address/zip (will succeed with is zip starts with)
+      Test types are:
+      equal (=)
+      not-equal (!)
+      initial equality (~)
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[=~!](.)*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="dateComparisonValue">
+    <xs:annotation><xs:documentation>
+      The value used in comparing the particular date data element to that stored in the user's ID card.
+      Dates are in the fomat YYYY-MM-DD in general, but may contain Year, Year/Month, or Year/Month/Date
+      Examples are:
+      >10/10/1967
+      =10/10
+      =10/1967
+      =1967
+      Test types are:
+      greater-than (&gt;)
+      less-than (&lt;)
+      equal (=)
+      not-equal (!)
+    </xs:documentation></xs:annotation>
+
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[=!&gt;&lt;][0-9]{4}(-(0[0-9]|1[012])(-([012][0-9]|3[01]))?)?"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="numericComparisonValue">
+    <xs:annotation><xs:documentation>
+      The value used in comparing the particular numeric data element to that stored in the user's ID card.
+      Examples are:
+      >21 for age
+      Non-equality tests for non-numeric values are not allowed.
+      Equality tests for non-numeric values are case insensitive, but are undefined for diacriticals
+      Test types are:
+      greater-than (&gt;)
+      less-than (&lt;)
+      equal (=)
+      not-equal (!)
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+
+      <xs:pattern value="[=!&gt;&lt;]([0-9])*"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="crimComparisonValue">
+    <xs:annotation><xs:documentation>
+      The value used in comparing the particular criminal check data element to that stored in the user's ID card.
+      Examples are:
+      =clearNoRecords
+      !notClear = At least one significant conviction, and/or repeated minor convictions. 
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[=!](clear_norecords|clear_traffic|clear_minor|open_minor|open_significant|not_clear)"/>
+    </xs:restriction>
+
+  </xs:simpleType>
+
+  <xs:simpleType name="valueStatus">
+    <xs:annotation><xs:documentation>
+      This type is used to describe the status of the value.  If the actual value is not returned 
+      (i.e. user prohibits the return of the actual value but allows verification status) then a status
+      of "private" is returned.  If a comparison of the value is requested (i.e. SSN ends with "1234") 
+      then the status attribute is used to relay "passed" if a value comparison was succeessful, otherwise, 
+      "failed" is set.  If a value is empty (i.e. prefix was not provided) an empty element is sent with
+      a status of "present".	
+    </xs:documentation></xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="present"/>
+      <xs:enumeration value="passed"/>
+      <xs:enumeration value="failed"/>
+      <xs:enumeration value="private"/>
+
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="errorType">
+    <xs:annotation><xs:documentation>
+      These are the values returned in the event of an error
+    </xs:documentation></xs:annotation>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="kind" type="errorClass"/>
+      </xs:extension>
+
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="errorClass">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="authenticationFailure"/>
+      <xs:enumeration value="invalidTransactionId"/>
+      <xs:enumeration value="otherError"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="accessRequestType">
+    <xs:annotation><xs:documentation>
+
+      The elements that may be included in a request
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="Name" type="nameRequestType" minOccurs="0"/>
+      <xs:element name="TrufinaUsername" type="stringRequestType" minOccurs="0"/>
+      <xs:element name="DateOfBirth" type="dateRequestType" minOccurs="0"/>
+      <xs:element name="Age" type="numericRequestType" minOccurs="0"/>
+      <xs:element name="Phone" type="phoneRequestType" minOccurs="0"/>
+      <xs:element name="ResidenceAddress" type="streetAddressTypeRequest" minOccurs="0"/>
+
+      <xs:element name="MailingAddress" type="streetAddressTypeRequest" minOccurs="0"/>
+      <xs:element name="FullSSN" type="ssnRequestType" minOccurs="0"/>
+      <xs:element name="Last4SSN" type="last4ssnRequestType" minOccurs="0"/>
+      <xs:element name="CrimCheck" type="crimRequestType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="accessResponseType">
+    <xs:annotation><xs:documentation>
+      The elements that may be included in the response to any request for information
+    </xs:documentation></xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="Name" type="nameResponseType" minOccurs="0"/>
+      <xs:element name="TrufinaUsername" type="stringResponseType" minOccurs="0"/>
+      <xs:element name="DateOfBirth" type="dateResponseType" minOccurs="0"/>
+      <xs:element name="Age" type="numericResponseType" minOccurs="0"/>
+      <xs:element name="Phone" type="phoneResponseType" minOccurs="0"/>
+      <xs:element name="ResidenceAddress" type="streetAddressTypeResponse" minOccurs="0"/>
+      <xs:element name="MailingAddress" type="streetAddressTypeResponse" minOccurs="0"/>
+      <xs:element name="FullSSN" type="ssnResponseType" minOccurs="0"/>
+
+      <xs:element name="Last4SSN" type="last4ssnResponseType" minOccurs="0"/>
+      <xs:element name="CrimCheck" type="crimResponseType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="requestFailureType">
+    <xs:annotation><xs:documentation>
+      Complete response for unrecognized request types or other errors beyond the scope of being returned in 
+      the record.
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="Error" type="errorType"/>
+
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="loginRequestType">
+    <xs:annotation><xs:documentation>
+      Elements contained in a login request
+      Contains:
+      PID and PAK to identify and authenticate the Partner
+      PRT as a reference for the partner to the request
+      CancelURL [opt] used when the user cancels
+      SuccessURL [opt] used when the user succeeds
+      FailureURL [opt] used when the user fails to login
+      UsePolicy states the use of the information
+      AccessRequest is the information request unless it is purely a login request
+      SeedInfo [opt] for information about the user.
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="PID" type="xs:int"/>
+      <xs:element name="PRT" type="prtType"/>
+      <xs:element name="PAK" type="pakType"/>
+
+      <xs:element name="CancelURL" type="xs:anyURI" minOccurs="0"/>
+      <xs:element name="SuccessURL" type="xs:anyURI" minOccurs="0"/>
+      <xs:element name="FailureURL" type="xs:anyURI" minOccurs="0"/>
+      <xs:element name="AccessRequest" type="accessRequestType"/>
+      <xs:element name="SeedInfo" type="seedData" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="loginResponseType">
+    <xs:annotation><xs:documentation>
+      Elements in a response to login request
+    </xs:documentation></xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="PRT" type="prtType"/>
+      <xs:choice>
+        <xs:element name="Error" type="errorType"/>
+        <xs:element name="PLID" type="plidType"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+
+
+  <xs:complexType name="dataRequestType">
+    <xs:annotation><xs:documentation>
+      Elements in a automated access request
+    </xs:documentation></xs:annotation>
+    <xs:sequence >
+      <xs:element name="PID" type="xs:int"/>
+      <xs:element name="PRT" type="prtType"/>
+      <xs:element name="PAK" type="pakType"/>
+      <xs:element name="PUR" type="purType"/>
+      <xs:element name="AccessRequest" type="accessRequestType"/>
+
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="dataResponseType">
+    <xs:annotation><xs:documentation>
+      Elements in a response to automated access request
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="PRT" type="prtType"/>
+      <xs:element name="PUR" type="purType"/>
+      <xs:choice>
+
+        <xs:element name="Error" type="errorType"/>
+        <xs:element name="AccessResponse" type="accessResponseType"/>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="notificationType">
+    <xs:annotation><xs:documentation>
+      Elements of the access notification
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+
+      <xs:element name="TNID" type="tnidType"/>
+      <xs:element name="PRT" type="prtType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="infoRequestType">
+    <xs:annotation><xs:documentation>
+      Elements of an info request
+    </xs:documentation></xs:annotation>
+    <xs:sequence >
+      <xs:element name="PID" type="xs:int"/>
+
+      <xs:element name="TNID" type="tnidType"/>
+      <xs:element name="PAK" type="pakType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="infoResponseType">
+    <xs:annotation><xs:documentation>
+      Elements in a response to info request
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="TNID" type="tnidType"/>
+
+      <xs:choice>
+        <xs:element name="Error" type="errorType"/>
+        <xs:sequence>
+          <xs:element name="PRT" type="prtType"/>
+          <xs:element name="PUR" type="purType"/>
+          <xs:element name="AccessResponse" type="accessResponseType"/>
+        </xs:sequence>
+      </xs:choice>
+    </xs:sequence>
+
+  </xs:complexType>
+
+  <xs:complexType name="loginInfoRequestType">
+    <xs:annotation><xs:documentation>
+      Elements in a login info request
+    </xs:documentation></xs:annotation>
+    <xs:sequence >
+      <xs:element name="PID" type="xs:int"/>
+      <xs:element name="TLID" type="tlidType"/>
+      <xs:element name="PAK" type="pakType"/>
+
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="loginInfoResponseType">
+    <xs:annotation><xs:documentation>
+      Elements in a response to a login info request
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="TLID" type="tlidType"/>
+      <xs:choice>
+        <xs:element name="Error" type="errorType"/>
+
+        <xs:sequence>
+          <xs:element name="PRT" type="prtType"/>
+          <xs:element name="PUR" type="purType"/>
+          <xs:element name="AccessResponse" type="accessResponseType"/>
+        </xs:sequence>
+      </xs:choice>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="seedData">
+
+    <xs:annotation><xs:documentation>
+      Elements that may be include in a seed data structure
+    </xs:documentation></xs:annotation>
+    <xs:sequence>
+      <xs:element name="Username" type="usernameSeedType" minOccurs="0"/>
+      <xs:element name="Password" type="passwordSeedType" minOccurs="0"/>
+      <xs:element name="Email" type="emailSeedType" minOccurs="0"/>
+      <xs:element name="Name" type="nameSeedType" minOccurs="0"/>
+      <xs:element name="DateOfBirth" type="dateSeedType" minOccurs="0"/>
+
+      <xs:element name="CountryOfBirth" type="isoCountrySpecifier" minOccurs="0"/>
+      <xs:element name="Phone" type="phoneSeedType" minOccurs="0"/>
+      <xs:element name="ResidenceAddress" type="streetAddressTypeSeed" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="MailingAddress" type="streetAddressTypeSeed" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="FullSSN" type="ssnType" minOccurs="0"/>
+      <xs:element name="Last4SSN" type="last4ssnType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
+

@@ -1,23 +1,20 @@
 class Trufina
   class Response
+    # Given returned Trufina XML, instantiate the proper HappyMapper wrapper.
+    # 
+    # (Note that this does not perform any error checking beyond unknown 
+    # root node name -- the higher level error checking is handled in the 
+    # Trufina.parseFromTrufina method)
     def self.parse(raw_xml)
       noko = Nokogiri::XML(raw_xml)
       
       # Try to find an appropriate local happymapper class
       begin
         klass = "Trufina::#{noko.root.name.gsub('Trufina', '')}".constantize
-        response = klass.parse(noko.to_xml)
+        return klass.parse(noko.to_xml)
       rescue
         raise UnknownResponseType.new("Raw XML: \n\n#{noko}")
       end
-      
-      # Raise exception if we've received an error
-      if response.is_a?(Trufina::RequestFailure)
-        raise TrufinaResponseException.new("#{response.error.kind}: #{response.error}")
-      end
-      
-      # Otherwise return what we've got
-      return response
     end
   end
 
@@ -48,6 +45,7 @@ class Trufina
     
     element :prt,   String, :tag => 'PRT'
     element :data,  Elements::AccessResponseGroup, :single => true
+    element :error, String, :tag => 'Error'
   end
 
   class InfoResponse
@@ -58,6 +56,7 @@ class Trufina
     element :tnid,  String, :tag => 'TNID'
     element :pur,   String, :tag => 'PUR'
     element :data,  Elements::AccessResponseGroup, :single => true
+    element :error, String, :tag => 'Error'
   end
 
   class LoginInfoResponse
@@ -68,6 +67,7 @@ class Trufina
     element :prt,    String, :tag => 'PRT'
     element :pur,    String, :tag => 'PUR'
     element :data,   Elements::AccessResponseGroup, :single => true
+    element :error, String, :tag => 'Error'
   end
 
   class LoginResponse
@@ -76,6 +76,7 @@ class Trufina
     
     element :prt,   String, :tag => 'PRT'
     element :plid,  String, :tag => 'PLID'
+    element :error, String, :tag => 'Error'
   end
 
 end

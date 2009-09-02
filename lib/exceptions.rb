@@ -1,6 +1,6 @@
 class Trufina
   class TrufinaException < StandardError; end
-  class ConfigFileNotFoundError < TrufinaException; end
+  class ConfigFileError < TrufinaException; end
   class MissingToken < TrufinaException; end
   class MissingRequiredElements < TrufinaException; end
   class MissingRequiredAttributes < TrufinaException; end

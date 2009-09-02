@@ -2,6 +2,21 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gem|
+    gem.name = "trufina"
+    gem.summary = %Q{DSL to easily interact with Trufina's verification API}
+    gem.description = %Q{Provides a DSL to easily interact with the XML API offered by Trufina.com, an identity verification company.}
+    gem.email = "kali.donovan@gmail.com"
+    gem.homepage = "http://github.com/kdonovan/trufina"
+    gem.authors = ["Kali Donovan"]
+    gem.add_dependency "jimmyz-happymapper"
+  end
+rescue LoadError
+  puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
+end
+
 desc 'Default: run unit tests.'
 task :default => :test
 

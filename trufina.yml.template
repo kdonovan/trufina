@@ -1,0 +1,31 @@
+# Your Trufina credentials
+credentials:
+  PID: YOUR_DATA_HERE          # Partner ID
+  PAK: YOUR_DATA_HERE          # Partner Authentication Key
+
+# Your username and password to access the staging website 
+# Note: only required for staging/demo use
+staging_access:
+  username: YOUR_DATA_HERE
+  password: YOUR_DATA_HERE
+
+# Default URLs to redirect user to after they complete the registration process
+# Note - can be overridden on a per-request basis if desired
+endpoints:
+  cancel:  YOUR_DATA_HERE
+  success: YOUR_DATA_HERE
+  failure: YOUR_DATA_HERE
+
+# Run mode (hit the production or staging servers at Trufina)
+# Optional -- otherwise defaults to staging unless installed in a 
+# Rails application with RAILS_ENV == 'production' or a Merb app
+# with MERB_ENV == 'production'.  
+#
+# The YML file is run through Erb before being processed, so you can
+# put arbitrary logic in <%= %> tags for this value as long as the output
+# is one of 'staging' or 'production'.
+#
+# Also note that this can be set explicitly via Trufina::Config.staging!
+# or Trufina::Config.production!
+# 
+mode: 

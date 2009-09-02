@@ -10,7 +10,8 @@ class Trufina
     end
 
     def render
-      # validate
+      validate_contents
+      # validate_against_schema
       to_xml
     end
     
@@ -28,12 +29,19 @@ class Trufina
     end
     
     # Ensure all required data is set BEFORE sending the request off to the remote API
-    def validate
+    def validate_contents
       missing_elements = self.class.elements.map(&:name).select {|e| !self.respond_to?(e) || self.send(e).nil?}
       raise MissingRequiredElements.new(missing_elements.join(', ')) unless missing_elements.empty?
 
       missing_attributes = self.class.attributes.map(&:name).select {|a| !self.respond_to?(a) || self.send(a).nil?}
       raise MissingRequiredAttributes.new(missing_attributes.join(', ')) unless missing_attributes.empty?
+    end
+    
+    # We have access to Trufina's XML schema, so we might as well validate against it before we hit their servers
+    # http://codeidol.com/other/rubyckbk/XML-and-HTML/Validating-an-XML-Document/
+    def validate_against_schema
+      libxml = XML::Document.string( self.to_xml )
+      libxml.validate(Trufina.schema)
     end
     
   end
@@ -112,24 +120,6 @@ class Trufina
     
     element :data,  Elements::AccessRequest, :single => true
     element :seed,  Elements::SeedInfoGroup, :single => true
-    
-    # # Syntactic sugar to easily allow adding seed data from a hash after the class has already been created
-    # def seed_with(info)
-    #   seed = Elements::SeedInfoGroup.new(hash)
-    # end
   end
   
 end
-
-__END__
-a=Trufina::AccessRequest.new({:prt => 'pprrtt', :pur => 'meow', :data => {:age => [], :name => [:first, :suffix]}})
-a=Trufina::AccessRequest.new({:prt => 'pprrtt', :pur => 'meow', :data => [:age, {:name => [:first, :suffix]}, {:residence_address => [:state, :city]}]})
-puts a.render
-
-a=Trufina::LoginRequest.new({:prt => 'pprrtt', :data => {:age => '', :name => [:first, :suffix], :residence_address => [:city, :state]}, :seed => {:name => {:first => 'Bob', :suffix => 'Trufie'}, :birth_date => Time.now.to_s}})
-
-a=Trufina::LoginRequest.new({:prt => 'pprrtt', :data => {:age => '', :name => [:first, :suffix], :residence_address => [:city, :state]}})
-# a.seed = {:name => {:first => 'Bob', :suffix => 'Trufie'}, :birth_date => Time.now.to_s}
-a.seed_with({:name => {:first => 'Bob', :suffix => 'Trufie'}, :birth_date => Time.now.to_s})
-
-# !! HANDLE REQUIRE_NOT_NIL, which is mashing together every class method

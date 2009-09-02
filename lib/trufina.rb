@@ -1,21 +1,11 @@
 require 'net/http'
 require 'net/https'
 require 'ostruct'
+require 'open-uri'
 
 require 'nokogiri'
 
 class Trufina
-
-  # Syntactic sugar for setting and checking the current operating mode
-  cattr_reader :mode
-  class << self
-    %w(staging production).each do |mode|
-      define_method("#{mode}!"){ @@mode = mode }
-      define_method("#{mode}?"){ @@mode == mode }
-    end
-  end
-  staging! # TODO - default to production once done testing
-
 
   class << self
     
@@ -92,6 +82,9 @@ class Trufina
       '/WebServices/API/'
     end
 
+    def schema
+      @@schema ||= XML::Schema.from_string(open("http://www.trufina.com/api/truapi.xsd").read)
+    end
 
     # Send the specified XML to Trufina's servers
     def sendToTrufina(xml)
@@ -103,7 +96,8 @@ class Trufina
       # Request info
       method_call = Net::HTTP::Post.new( endpoint, {'Content-Type' => 'text/xml'} )
       method_call.body = xml
-      if staging? # TODO: unclear if prod site requires another set of credentials
+
+      if Trufina::Config.staging? # TODO: unclear if production site requires another set of credentials
         method_call.basic_auth(Config.staging_access[:username], Config.staging_access[:password])
       end
     
@@ -115,7 +109,16 @@ class Trufina
   
     # Try to make something useful from Trufina's XML responses
     def parseFromTrufina(raw_xml)
-      Trufina::Response.parse(raw_xml)
+      response = Trufina::Response.parse(raw_xml)
+      
+      # Raise exception if we've received an error
+      if response.is_a?(Trufina::RequestFailure) # Big error -- the entire returned XML is to tell us
+        raise TrufinaResponseException.new("#{response.error.kind}: #{response.error}")
+      elsif response.respond_to?(:error) && response.error # Smaller error, noted inline
+        raise TrufinaResponseException.new("Error in #{response.class.name}: #{response.error}")
+      end
+      
+      return response
     end
      
     # Given a PLID (from a login_request), return a url to send the user to
