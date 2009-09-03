@@ -1,5 +1,9 @@
+# Contains smaller classes (essentially HappyMapper element classes) used to create and
+# parse API calls and responses.
+
 class Trufina
-  # Handle creating a HappyMapper object from Array or hash
+  
+  # Handle creating a HappyMapper object from array or hash (creating empty nodes as required).
   module AllowCreationFromHash
     
     def initialize(seed_data = {})
@@ -39,7 +43,7 @@ class Trufina
       when Hash then create_nodes(name)
       else
         element   = self.class.elements.detect{|e| e.method_name.to_sym == name}
-        raise InvalidElement.new("No known element named '#{name}'") unless element
+        raise Exceptions::InvalidElement.new("No known element named '#{name}'") unless element
 
         value = if HappyMapper::Item::Types.include?(element.type)
           content ? content : ''
@@ -67,20 +71,6 @@ class Trufina
             yes << {p.to_sym => val.present_and_verified}
           else
             yes << {p.to_sym => val} if val.state == 'verified' && val.status == 'present'
-          end
-        end
-        yes
-      end
-      
-      def pending
-        yes = []
-        self.class.elements.map(&:method_name).each  do |p|
-          next unless val = self.send(p)
-          
-          if val.respond_to?(:present_and_verified)
-            yes << {p.to_sym => val.pending}
-          else
-            yes << {p.to_sym => val} if val.state == 'pending'
           end
         end
         yes
@@ -134,8 +124,8 @@ class Trufina
       tag 'AccessResponse'
   
       element :name,              Name,     :single => true,          :attributes => RESPONSE_XML_ATTRIBUTES
-      element :birth_date,        Date,     :tag => 'DateOfBirth',    :attributes => RESPONSE_XML_ATTRIBUTES
-      element :birth_country,     String,   :tag => 'CountryOfBirth', :attributes => RESPONSE_XML_ATTRIBUTES
+      # element :birth_date,        Date,     :tag => 'DateOfBirth',    :attributes => RESPONSE_XML_ATTRIBUTES
+      # element :birth_country,     String,   :tag => 'CountryOfBirth', :attributes => RESPONSE_XML_ATTRIBUTES
       element :phone,             String,   :tag => 'Phone',          :attributes => RESPONSE_XML_ATTRIBUTES
       element :residence_address, ResidenceAddress, :single => true,  :attributes => RESPONSE_XML_ATTRIBUTES
       element :ssn,               String,   :tag => 'fullSSN',        :attributes => RESPONSE_XML_ATTRIBUTES

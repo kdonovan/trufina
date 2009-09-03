@@ -1,26 +1,8 @@
-* Switch to jimmyz's happymapper repo for to_xml support'
-  - how to create new requests
-* handle edge case of street_address, which to_xml yeilds <.> tag
+PENDING:
+  * Schema validation against the provided .xsd fails
+  * Unable to set ResidenceAddress in seed data (e.g. Trufina.login_request(4, :seed => {:residence_address => {:state => 'CA'}}))
+    Yields error: Attribute 'timeframe' must appear on element 'ResidenceAddress' (noted in README)
 
-* Parsing responses 
-  -- add MailingAddress to parsing, or remove Residence qualifier
-* Clean out stuff from before HappyMapper
-* Do something similar to responses for Requests
-  - figure out how to take in a bunch of seed data and request data and output the desired xml
-
-
-FILL IN THESE AND SIMILAR FROM SCHEMA:
-  Is the Trufina username available via the API?
-    Yes, use the TrufinaUsername element to request the username of the Trufina user.   Refer to the truapi.xsd schema for information about this element.  
-  What does the comparison string look like for the Age element?  Say I want to verify someone is over 18?
-    <Age comparison=">17"/>
-
-
-
-* Keep working until all implemented
-* Make class methods, so Trufina.redirect_url, not Trufina.new.redirect_url
-* Figure out how to best handle creation on the fly of request and seed data
-
-* Fix requires in init.rb to be relative to file, not RAILS_ROOT (if still exists)
-* Update template config yaml file to include all necessary fields
-* Remove this TODO file :)
+UNSUPPORTED:
+  * Setting StreetAddress seed data is unsupported (will generate extra <.> tags, and it is unclear how to set multiple lines)
+  * Comparison or other request attributes (note that maxAge and timeframe are not even supported by Trufina yet)

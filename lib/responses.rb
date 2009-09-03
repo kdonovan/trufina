@@ -1,3 +1,5 @@
+# Contains all Trufina::Responses::* classes.
+
 class Trufina
   class Response
     # Given returned Trufina XML, instantiate the proper HappyMapper wrapper.
@@ -16,73 +18,73 @@ class Trufina
       
       # Try to find an appropriate local happymapper class
       begin
-        klass = "Trufina::#{noko.root.name.gsub('Trufina', '')}".constantize
+        klass = "Trufina::Responses::#{noko.root.name.gsub('Trufina', '')}".constantize
         return klass.parse(noko.to_xml)
       rescue
-        raise UnknownResponseType.new("Raw XML: \n\n#{noko}")
+        raise Exceptions::UnknownResponseType.new("Raw XML: \n\n#{noko}")
       end
     end
   end
 
-  
-  # =========================================================
-  # = High-level Responses -- one for each Trufina response =
-  # =========================================================
   # These classes are used to parse responses from the Trufina API.
-
-  class RequestFailure
-    include HappyMapper
-    tag 'TrufinaRequestFailure'
+  # There's a class in this module for each possible Trufina response 
+  # (plus AccessNotification, which is basically an asynchronous response).
+  module Responses
+  
+    class RequestFailure
+      include HappyMapper
+      tag 'TrufinaRequestFailure'
     
-    element :error,   String, :tag => 'Error', :attributes => {:kind => String}
-  end
+      element :error,   String, :tag => 'Error', :attributes => {:kind => String}
+    end
 
-  class AccessNotification
-    include HappyMapper
-    tag 'TrufinaAccessNotification'
+    class AccessNotification
+      include HappyMapper
+      tag 'TrufinaAccessNotification'
     
-    element :prt,   String, :tag => 'PRT'
-    element :tnid,  String, :tag => 'TNID'
-  end
+      element :prt,   String, :tag => 'PRT'
+      element :tnid,  String, :tag => 'TNID'
+    end
 
-  class AccessResponse
-    include HappyMapper
-    tag 'TrufinaAccessResponse'
+    class AccessResponse
+      include HappyMapper
+      tag 'TrufinaAccessResponse'
     
-    element :prt,   String, :tag => 'PRT'
-    element :data,  Elements::AccessResponseGroup, :single => true
-    element :error, String, :tag => 'Error'
-  end
+      element :prt,   String, :tag => 'PRT'
+      element :data,  Elements::AccessResponseGroup, :single => true
+      element :error, String, :tag => 'Error'
+    end
 
-  class InfoResponse
-    include HappyMapper
-    tag 'TrufinaInfoResponse'
+    class InfoResponse
+      include HappyMapper
+      tag 'TrufinaInfoResponse'
     
-    element :prt,   String, :tag => 'PRT'
-    element :tnid,  String, :tag => 'TNID'
-    element :pur,   String, :tag => 'PUR'
-    element :data,  Elements::AccessResponseGroup, :single => true
-    element :error, String, :tag => 'Error'
-  end
+      element :prt,   String, :tag => 'PRT'
+      element :tnid,  String, :tag => 'TNID'
+      element :pur,   String, :tag => 'PUR'
+      element :data,  Elements::AccessResponseGroup, :single => true
+      element :error, String, :tag => 'Error'
+    end
 
-  class LoginInfoResponse
-    include HappyMapper
-    tag 'TrufinaLoginInfoResponse'
+    class LoginInfoResponse
+      include HappyMapper
+      tag 'TrufinaLoginInfoResponse'
     
-    element :tlid,   String, :tag => 'TLID'
-    element :prt,    String, :tag => 'PRT'
-    element :pur,    String, :tag => 'PUR'
-    element :data,   Elements::AccessResponseGroup, :single => true
-    element :error, String, :tag => 'Error'
-  end
+      element :tlid,   String, :tag => 'TLID'
+      element :prt,    String, :tag => 'PRT'
+      element :pur,    String, :tag => 'PUR'
+      element :data,   Elements::AccessResponseGroup, :single => true
+      element :error, String, :tag => 'Error'
+    end
 
-  class LoginResponse
-    include HappyMapper
-    tag 'TrufinaLoginResponse'
+    class LoginResponse
+      include HappyMapper
+      tag 'TrufinaLoginResponse'
     
-    element :prt,   String, :tag => 'PRT'
-    element :plid,  String, :tag => 'PLID'
-    element :error, String, :tag => 'Error'
-  end
+      element :prt,   String, :tag => 'PRT'
+      element :plid,  String, :tag => 'PLID'
+      element :error, String, :tag => 'Error'
+    end
 
+  end
 end

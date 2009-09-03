@@ -1,0 +1,116 @@
+= Trufina
+
+The Trufina gem provides a DSL allowing you to easily interface with {Trufina.com}[http:www.trufina.com]'s identity verification API.  
+Trufina[http:www.trufina.com] provides an identity verification service, and this DSL basically lets you request verified information
+from the user (who provides that information directly to Trufina[http:www.trufina.com], and then uses their website to control
+permissions of who can access what parts of their personal data).
+
+== Requirements
+
+Before you begin you'll need to fill out some paperwork with Trufina[http:www.trufina.com] and, after a bit of administrative mucking around, 
+you'll be given two important identifiers: a PID (Partner ID) and a PAK (Partner Authentication Key).  Place these in
+your +config/trufina.yml+ file, replace the other defaults, and you'll be good to go.
+
+== Installation
+
+Getting the code on your system is as simple as
+
+  script/plugin install git://github.com/kdonovan/trufina.git
+  
+or
+
+  gem sources -a http://gems.github.com
+  sudo gem install kdonovan-trufina
+  
+
+Once you have the code, you'll need to create a +trufina.yml+ file in your project's config directory.  If you don't
+do this by hand, a template file will be created automatically the first time you load your application after installation.
+Trufina will raise a ConfigFileError until you fill out the config file with meaningful data.
+
+
+== Example
+
+Once installation has been completed, using the code itself is really easy -- the most complicated step is understanding
+Trufina[http:www.trufina.com]'s various flows.  We'll walk through an example:
+
+  # We'll skip it here for verbosity, but note that you can turn on debugging
+  # to print out pretty versions of any XML sent or received.
+  # Trufina::Config.debug = true
+
+Say we have a user in our database for whom we want verified information.  The first step is to
+establish a session key with Trufina[http:www.trufina.com] so we can associate later responses with this request.  This
+is done by sending them a PRT (Partner Request Token), which can be any arbitrary value. In a real app
+I'd probably use a user-id + timestamp combination, but for this demo we'll use the {random number}[http://xkcd.com/221/] 4.
+
+Note that you can also specify what data you want access to (name, address, country of birth, etcetera),
+as well as any default values you may already know to prefill the form on the Trufina[http:www.trufina.com] website.  See
+Trufina.login_url or Trufina.login_request for more details, but the default is to request the user's first and last name.
+
+  Trufina.login_url(4, :demo => true) # => http://staging.trufina.com/DemoPartnerLogin/DemoLogin/6ZEeENWWD8@K
+  
+
+You can now visit this URL to create an account for a fake user on Trufina[http:www.trufina.com]'s demo server. When you're done,
+you'll be redirected to whatever you put as your success endpoint in +trufina.yml+, and there will be a TLID
+(Temporary Login ID) appended.  In my case it was 870.  You have 15 minutes to use this TLID to access the 
+information about the user Trufina[http:www.trufina.com] has verified.
+
+  info = Trufina.login_info_request(870)
+  info.data.present_and_verified # => [{:name=>[{:first=>"TEST_FIRNAME"}, {:surname=>"TEST_SURNAME"}]}] (or whatever names you entered on the staging server)
+
+
+That completes the simplest use-case.  Say we decide we want more information about the user, like their middle 
+name.  We send Trufina[http:www.trufina.com] an access request, and if the user has already provided the information and given us 
+permission we'll get the info back immediately.
+
+  new_info = Trufina.access_request(info, {:name => [:middle]})
+  new_info.data.present_and_verified # => [{:name=>[{:middle=>"SomeMiddleName"}]}]
+
+
+Note that here our demo user has already given Trufina[http:www.trufina.com] permission to see all the name components, so we get 
+the middle name back immediately.  For a different component where Trufina[http:www.trufina.com] needs to ask the user there's no 
+useful data in the response (the XML contains a "pending" node, but the gem doesn't bother parsing it out).
+
+  Trufina.access_request(info, [:phone]).data.present_and_verified # => []
+
+
+In this case we would receive an AccessNotification to our servers once the user gave us permission to access
+the requested data, and at that point we'd be able to re-request the data with another Trufina.access_request 
+call, for which the newly requested data would show up like the middle name did above.
+
+
+== Advanced Topics
+
+=== Seed Info
+
+Trufina.login_request (and therefore Trufina.login_url, which is just a wrapper) allows you to pass along seed 
+data used to prepopulate the fields the user will encounter on Trufina.com (see Trufina::Elements::SeedInfoGroup 
+for all options).  Prepopulated data will be specified as the value of a :seed key in the options hash of either
+method. Example:
+
+  Trufina.login_request(4, :seed => {:name => {:first => 'Foo', :surname => 'Bar'}})
+
+=== Request Data
+
+A number of the API calls allow you to supply a list of the data you'd like returned about the user in question.
+You may do this as follows:
+
+  Trufina.login_request(4, :requested => [:age, {:name => [:first, :middle, :surname]}])
+
+or
+
+  Trufina.access_request({:pur => 4, :prt => 4}, [:age, {:name => [:first, :middle, :surname]}])
+
+
+== Unsupported functionality
+
+* Does not handle requesting comparisons or other request attributes
+  * (Note that Trufina[http:www.trufina.com] itself doesn't support maxAge or timeframe yet)
+* Setting ResidenceAddress seed data isn't yet supported
+
+== Compatibility
+
+The goal of this module is to be relatively framework agnostic.  That being said, I've personally only tried to use it
+in conjunction with a Rails application.  If you run into problems trying to use it elsewhere, well... patches happily
+accepted. :)
+
+Copyright (c) 2009 Kali Donovan, released under the MIT license

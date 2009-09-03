@@ -1,4 +1,5 @@
 class Trufina
+  # Reads in configuration data from config/trufina.yml (and handles creating it if missing / complaining if it looks unfilled).
   class Config
     cattr_accessor  :credentials, :staging_access, :endpoints,
                     :app_root, :config_file, :mode, :debug
@@ -11,7 +12,7 @@ class Trufina
     self.config_file       = File.join(self.app_root, 'config', 'trufina.yml')
 
     # Symbolize hash keys - defined here so we don't rely on Rails
-    def self.symbolize_keys!(hash)
+    def self.symbolize_keys!(hash) # :nodoc:
       return hash unless hash.is_a?(Hash)
       
       hash.keys.each do |key|
@@ -27,7 +28,7 @@ class Trufina
     unless File.exists?(self.config_file)
       config_template = File.join(File.dirname(__FILE__), '..', 'trufina.yml.template')
       File.copy(config_template, self.config_file)
-      raise ConfigFileError.new("Unable to create configuration template at #{self.config_file}") unless File.exists?(self.config_file)
+      raise Exceptions::ConfigFileError.new("Unable to create configuration template at #{self.config_file}") unless File.exists?(self.config_file)
     end
     
     # Load keys from config file into the class
@@ -43,10 +44,8 @@ class Trufina
     
     # Ensure template file has been modified with (hopefully) real data
     if self.credentials.any?{|k,v| v == 'YOUR_DATA_HERE'}
-      raise ConfigFileError.new("Don't forget to update the Trufina config file with your own data! File is located at #{self.config_file}")
+      raise Exceptions::ConfigFileError.new("Don't forget to update the Trufina config file with your own data! File is located at #{self.config_file}")
     end
-    
-    
     
     # Syntactic sugar for setting and checking the current operating mode
     class << self
