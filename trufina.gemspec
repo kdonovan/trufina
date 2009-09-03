@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{trufina}
-  s.version = "0.1.0"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Kali Donovan"]
-  s.date = %q{2009-09-02}
+  s.date = %q{2009-09-03}
   s.description = %q{Provides a DSL to easily interact with the XML API offered by Trufina.com, an identity verification company.}
   s.email = %q{kali.donovan@gmail.com}
   s.extra_rdoc_files = [
@@ -44,6 +44,7 @@ Gem::Specification.new do |s|
      "test/fixtures/schema.xsd",
      "test/test_helper.rb",
      "test/trufina_test.rb",
+     "trufina.gemspec",
      "trufina.yml.template"
   ]
   s.homepage = %q{http://github.com/kdonovan/trufina}
