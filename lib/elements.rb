@@ -89,7 +89,7 @@ class Trufina
       element :first,   String, :tag => 'First',                :attributes => RESPONSE_XML_ATTRIBUTES
       element :middle,  String, :tag => 'MiddleName',           :attributes => RESPONSE_XML_ATTRIBUTES
       element :middle_initial, String, :tag => 'MiddleInitial', :attributes => RESPONSE_XML_ATTRIBUTES
-      element :surname, String, :tag => 'Surname',              :attributes => RESPONSE_XML_ATTRIBUTES
+      element :last,    String, :tag => 'Surname',              :attributes => RESPONSE_XML_ATTRIBUTES
       element :suffix,  String, :tag => 'Suffix',               :attributes => RESPONSE_XML_ATTRIBUTES
     end
     

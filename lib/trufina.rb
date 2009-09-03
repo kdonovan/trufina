@@ -13,13 +13,13 @@ class Trufina
     # Examples:
     #
     #   Trufina.login_request(Time.now)
-    #   Trufina.login_request(Time.now, :requested => [:phone], :seed => {:name => {:first => 'Foo', :surname => 'Bar'}})
+    #   Trufina.login_request(Time.now, :requested => [:phone], :seed => {:name => {:first => 'Foo', :last => 'Bar'}})
     #
     # Options:
     #   * requested -- Hash of requested info to be returned once the user is done with Trufina
     #   * seed  -- Hash of seed data used to prefill the user's forms at Trufina's website
     def login_request(prt, opts = {})
-      opts[:requested] ||= {:name => [:first, :surname]}
+      opts[:requested] ||= {:name => [:first, :last]}
       opts[:seed]
       xml = Requests::LoginRequest.new(:prt => prt, :data => opts[:requested], :seed => opts[:seed]).render
       sendToTrufina(xml)

@@ -31,7 +31,7 @@ do this by hand, a template file will be created automatically the first time yo
 Trufina will raise a ConfigFileError until you fill out the config file with meaningful data.
 
 
-== Example
+== Examples
 
 Once installation has been completed, using the code itself is really easy -- the most complicated step is understanding
 Trufina[http://www.trufina.com]'s various flows.  We'll walk through an example:
@@ -58,7 +58,7 @@ you'll be redirected to whatever you put as your success endpoint in +trufina.ym
 information about the user Trufina[http://www.trufina.com] has verified.
 
   info = Trufina.login_info_request(870)
-  info.data.present_and_verified # => [{:name=>[{:first=>"TEST_FIRNAME"}, {:surname=>"TEST_SURNAME"}]}] (or whatever names you entered on the staging server)
+  info.data.present_and_verified # => [{:name=>[{:first=>"FIRSTNAME"}, {:last=>"LASTNAME"}]}] (or whatever names you entered on the staging server)
 
 
 That completes the simplest use-case.  Say we decide we want more information about the user, like their middle 
@@ -90,18 +90,40 @@ data used to prepopulate the fields the user will encounter on Trufina.com (see 
 for all options).  Prepopulated data will be specified as the value of a :seed key in the options hash of either
 method. Example:
 
-  Trufina.login_request(4, :seed => {:name => {:first => 'Foo', :surname => 'Bar'}})
+  Trufina.login_request(4, :seed => {:name => {:first => 'Foo', :last => 'Bar'}})
 
 === Request Data
 
 A number of the API calls allow you to supply a list of the data you'd like returned about the user in question.
 You may do this as follows:
 
-  Trufina.login_request(4, :requested => [:age, {:name => [:first, :middle, :surname]}])
+  Trufina.login_request(4, :requested => [:age, {:name => [:first, :middle, :last]}])
 
 or
 
-  Trufina.access_request({:pur => 4, :prt => 4}, [:age, {:name => [:first, :middle, :surname]}])
+  Trufina.access_request({:pur => 4, :prt => 4}, [:age, {:name => [:first, :middle, :last]}])
+
+Note that an array item creates an empty node (e.g. <age/>) unless it's a hash, in which case it creates a node named from the hash key containing and recurses into the hash value inside the node.  That is to say,
+
+  :name => [:first, :middle, :last]
+  
+will generate something like:
+
+  <name>
+    <first/>
+    <middle/>
+    <last/>
+  </name>
+  
+which is exactly the format Trufina requires to indicate we want to receive the first and middle names of the specified user.  Note that the gem does some additional work to hide irregularities of the Trufina API from the user (i.e. you), so the above code really renders:
+
+  <Name>
+    <First/>
+    <MiddleName/>
+    <Surname/>
+  </Name>
+
+(meaning you don't have to remember that Trufina randomly uses Surname, and breaks their convention by using MiddleName rather than simply Middle).
 
 
 == Unsupported functionality
