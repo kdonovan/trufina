@@ -3,8 +3,6 @@ require 'net/https'
 require 'ostruct'
 require 'open-uri'
 
-require 'nokogiri'
-
 # Provides a DSL to easily interact with the XML API offered by Trufina.com.
 class Trufina
 

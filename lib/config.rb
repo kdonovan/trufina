@@ -1,3 +1,5 @@
+require 'fileutils'
+
 class Trufina
   # Reads in configuration data from config/trufina.yml (and handles creating it if missing / complaining if it looks unfilled).
   class Config
@@ -27,7 +29,7 @@ class Trufina
     # Ensure config exists
     unless File.exists?(self.config_file)
       config_template = File.join(File.dirname(__FILE__), '..', 'trufina.yml.template')
-      File.copy(config_template, self.config_file)
+      FileUtils.cp(config_template, self.config_file)
       raise Exceptions::ConfigFileError.new("Unable to create configuration template at #{self.config_file}") unless File.exists?(self.config_file)
     end
     

@@ -8,20 +8,20 @@ class Trufina
     # root node name -- the higher level error checking is handled in the 
     # Trufina.parseFromTrufina method)
     def self.parse(raw_xml)
-      noko = Nokogiri::XML(raw_xml)
+      xml = LibXML::XML::Parser.string(raw_xml).parse
       
       if Trufina::Config.debug?
         puts "Received XML:\n\n"
-        puts noko.to_xml
+        puts xml
         puts "\n\n"
       end
       
       # Try to find an appropriate local happymapper class
       begin
-        klass = "Trufina::Responses::#{noko.root.name.gsub('Trufina', '')}".constantize
-        return klass.parse(noko.to_xml)
+        klass = "Trufina::Responses::#{xml.root.name.gsub('Trufina', '')}".constantize
+        return klass.parse(xml)
       rescue
-        raise Exceptions::UnknownResponseType.new("Raw XML: \n\n#{noko}")
+        raise Exceptions::UnknownResponseType.new("Raw XML: \n\n#{xml}")
       end
     end
   end

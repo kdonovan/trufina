@@ -22,6 +22,9 @@ or
   gem sources -a http://gems.github.com
   sudo gem install kdonovan-trufina
   
+  # Add this to environment.rb
+  config.gem 'kdonovan-trufina', :lib => 'trufina', :source => "http://gems.github.com"
+  
 
 Once you have the code, you'll need to create a +trufina.yml+ file in your project's config directory.  If you don't
 do this by hand, a template file will be created automatically the first time you load your application after installation.
