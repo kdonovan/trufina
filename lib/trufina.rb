@@ -20,8 +20,7 @@ class Trufina
     #   * seed  -- Hash of seed data used to prefill the user's forms at Trufina's website
     def login_request(prt, opts = {})
       opts[:requested] ||= {:name => [:first, :last]}
-      opts[:seed] ||= []
-      xml = Requests::LoginRequest.new(:prt => prt, :data => opts[:requested], :seed => opts[:seed]).render
+      xml = Requests::LoginRequest.new(:prt => prt, :data => opts[:requested], :seed => remove_empties_from_hash(opts[:seed] || [])).render
       sendToTrufina(xml)
     end
 
@@ -135,6 +134,17 @@ class Trufina
     def login_url_from_plid(plid, is_demo = nil)
       path = (Config.staging? && is_demo) ? "/DemoPartnerLogin/DemoLogin/#{plid}" : "/PartnerLogin/Login/#{plid}"
       "http://#{domain}#{path}"
+    end
+    
+    # Removes any hash keys with empty values - seed data can't have any blanks, or Trufina gets mad
+    def remove_empties_from_hash(old_hash)
+      new_hash = {}
+      old_hash.each do |key, value|
+        next if value.nil? || value == '' || value == [] || value == {}
+        new_hash[key] = value.is_a?(Hash) ? remove_empties_from_hash(value) : value
+      end
+      
+      return new_hash
     end
     
   end

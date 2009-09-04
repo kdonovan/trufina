@@ -126,6 +126,13 @@ class Trufina
     
       element :data,  Elements::AccessRequest, :single => true
       element :seed,  Elements::SeedInfoGroup, :single => true
+      
+      def initialize *args
+        super(args)
+        
+        # Trufina is brilliant, and they fail if this isn't in the request (even though they don't actually read the value)
+        seed.residence_address.timeframe = 'current'
+      end
     end
   
   end

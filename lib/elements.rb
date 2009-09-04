@@ -7,51 +7,59 @@ class Trufina
   module AllowCreationFromHash
     
     def initialize(seed_data = {})
-      seed_data.is_a?(Array) ? create_empty_nodes(seed_data) : create_nodes(seed_data)
+      create_nodes(seed_data)
+
+      # Define attributes
+      self.class.attributes.each do |attr|
+        self.send("#{attr.method_name}=", nil) unless self.send(attr.method_name)
+      end
+      
+      # Define elements
+      self.class.attributes.each do |elem|
+        self.send("#{elem.method_name}=", nil) unless self.send(elem.method_name)
+      end
     end
 
     protected
     
-    # e.g. Trufina::Name.new([:first, :suffix]) - no values provided, print empty nodes
-    #
-    #     <Name>
-    #       <First/>
-    #       <Suffix/>
-    #     </Name>
-    def create_empty_nodes(nodes)
-      nodes.each do |node|
-        create_node(node)
-      end
-    end
-
-    # e.g. Trufina::Name.new({:first => 'Bob', :suffix => 'III'}) - print nodes with values
-    # 
-    #     <Name>
-    #       <First>Bob</First>
-    #       <Suffix>III</Suffix>
-    #     </Name>
-    def create_nodes(nodes)
-      nodes.each do |node, content|
-        create_node(node, content)
+    def create_nodes(data)
+      data.each do |key, value|
+        create_node(key, value)
       end
     end
     
     # Handle the actual node creation
     def create_node(name, content = nil)
+      return create_nodes(name) if content.nil? && name.is_a?(Hash) # Handle accidentally passing in a full hash
+      
+      element   = self.class.elements.detect{|e| e.method_name.to_sym == name}
+      raise Exceptions::InvalidElement.new("No known element named '#{name}'") unless element || self.respond_to?("#{name}=")
+      
       case name
-      when Array then create_empty_nodes(name)
       when Hash then create_nodes(name)
+      when Array  then create_empty_nodes(name)
       else
-        element   = self.class.elements.detect{|e| e.method_name.to_sym == name}
-        raise Exceptions::InvalidElement.new("No known element named '#{name}'") unless element
-
-        value = if HappyMapper::Item::Types.include?(element.type)
-          content ? content : ''
-        else 
-          content ? element.type.new(content) : element.type.new
+        value = if content.nil?
+          make_object?(element) ? element.type.new : ''
+        elsif content.is_a?(Array) && (element && !element.options[:single])
+          # If elements expects multiple instances, instantiate them all (e.g. StreetAddresses)
+          # Note that this assumes the object (only known case is Trufina::Elements::StreetAddress) has a :name element
+          out = content.collect do |local_content|
+            make_object?(element) ? element.type.new(:name => local_content) : local_content
+          end
+        else
+          make_object?(element) ? element.type.new(content) : content
         end
+        
         self.send("#{name}=", value)
       end
+    end
+    
+    # Returns false if the given content is a simple type like a string, and we should just assign it.
+    # Returns true if the given content is another HappyMapper class, and we should instantiate the class 
+    # rather than merely assigning the value.
+    def make_object?(element)
+      element && !HappyMapper::Item::Types.include?(element.type)
     end
     
   end
@@ -93,28 +101,38 @@ class Trufina
       element :suffix,  String, :tag => 'Suffix',               :attributes => RESPONSE_XML_ATTRIBUTES
     end
     
-    # Wrapper attempting to allow access to multiple StreetAddress tags per single ResidenceAddress
-    class StreetAddress
-      include AllowCreationFromHash
-      include HappyMapper
-      include EasyElementAccess
-      tag 'StreetAddress'
-      
-      element :name, String, :tag => '.', :attributes => RESPONSE_XML_ATTRIBUTES
-    end
-
-    # Encapsulates Trufina's address fields
-    class ResidenceAddress
+    # Encapsulates Trufina's address fields - has multiple street address fields
+    class ResidenceAddressResponse
       include AllowCreationFromHash
       include HappyMapper
       include EasyElementAccess
       tag 'ResidenceAddress'
 
-      has_many :street_addresses, StreetAddress,  :tag => 'StreetAddress',  :attributes => RESPONSE_XML_ATTRIBUTES
+      has_many :street_addresses, String,         :tag => 'StreetAddress',  :attributes => RESPONSE_XML_ATTRIBUTES
+      element :city,              String,         :tag => 'City',           :attributes => RESPONSE_XML_ATTRIBUTES
+      element :state,             String,         :tag => 'State',          :attributes => RESPONSE_XML_ATTRIBUTES
+      element :zip,               String,         :tag => 'PostalCode',     :attributes => RESPONSE_XML_ATTRIBUTES
+      attribute :timeframe,       String
+
+      def street_address=(adr)
+        self.street_addresses ||= []
+        self.street_addresses << adr
+      end
+    end
+    
+    # Encapsulates Trufina's address fields - only one street address field
+    class ResidenceAddressRequest
+      include AllowCreationFromHash
+      include HappyMapper
+      include EasyElementAccess
+      tag 'ResidenceAddress'
+
+      element :street_address,    String,         :tag => 'StreetAddress',  :attributes => RESPONSE_XML_ATTRIBUTES
       element :city,              String,         :tag => 'City',           :attributes => RESPONSE_XML_ATTRIBUTES
       element :state,             String,         :tag => 'State',          :attributes => RESPONSE_XML_ATTRIBUTES
       element :zip,               String,         :tag => 'PostalCode',     :attributes => RESPONSE_XML_ATTRIBUTES
     end
+
 
     # Encapsulates all response data Trufina may send back
     class AccessResponseGroup
@@ -123,11 +141,11 @@ class Trufina
       include EasyElementAccess
       tag 'AccessResponse'
   
-      element :name,              Name,     :single => true,          :attributes => RESPONSE_XML_ATTRIBUTES
+      element :name,              Name,     :single => true
       # element :birth_date,        Date,     :tag => 'DateOfBirth',    :attributes => RESPONSE_XML_ATTRIBUTES
       # element :birth_country,     String,   :tag => 'CountryOfBirth', :attributes => RESPONSE_XML_ATTRIBUTES
       element :phone,             String,   :tag => 'Phone',          :attributes => RESPONSE_XML_ATTRIBUTES
-      element :residence_address, ResidenceAddress, :single => true,  :attributes => RESPONSE_XML_ATTRIBUTES
+      element :residence_address, ResidenceAddressResponse,           :single => true
       element :ssn,               String,   :tag => 'fullSSN',        :attributes => RESPONSE_XML_ATTRIBUTES
       element :last_4_ssn,        String,   :tag => 'Last4SSN',       :attributes => RESPONSE_XML_ATTRIBUTES
       element :age,               String,   :tag => 'Age',            :attributes => RESPONSE_XML_ATTRIBUTES
@@ -143,7 +161,7 @@ class Trufina
       element :birth_date,        Date,     :tag => 'DateOfBirth'
       element :birth_country,     String,   :tag => 'CountryOfBirth'
       element :phone,             String,   :tag => 'Phone'           # If Trufina implemented it, could have timeframe and maxAge attributes
-      element :residence_address, ResidenceAddress, :single => true   # If Trufina implemented it, could have timeframe and maxAge attributes
+      element :residence_address, ResidenceAddressRequest,            :single => true   # If Trufina implemented it, could have timeframe and maxAge attributes
       element :ssn,               String,   :tag => 'fullSSN'
       element :last_4_ssn,        String,   :tag => 'Last4SSN'
       element :age,               String,   :tag => 'Age',            :attributes => {:comparison => String}
@@ -156,11 +174,10 @@ class Trufina
       tag 'SeedInfo'
       
       element :name,              Name,     :single => true
-      element :email,             String,   :single => true
       element :birth_date,        Date,     :tag => 'DateOfBirth'
       element :birth_country,     String,   :tag => 'CountryOfBirth'
       element :phone,             String,   :tag => 'Phone'
-      element :residence_address, ResidenceAddress, :single => true
+      element :residence_address, ResidenceAddressResponse,           :single => true
       element :ssn,               String,   :tag => 'fullSSN'
       element :last_4_ssn,        String,   :tag => 'Last4SSN'
       element :age,               String,   :tag => 'Age'

@@ -1,8 +1,5 @@
 PENDING:
   * Schema validation against the provided .xsd fails
-  * Unable to set ResidenceAddress in seed data (e.g. Trufina.login_request(4, :seed => {:residence_address => {:state => 'CA'}}))
-    Yields error: Attribute 'timeframe' must appear on element 'ResidenceAddress' (noted in README)
 
 UNSUPPORTED:
-  * Setting StreetAddress seed data is unsupported (will generate extra <.> tags, and it is unclear how to set multiple lines)
   * Comparison or other request attributes (note that maxAge and timeframe are not even supported by Trufina yet)

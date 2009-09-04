@@ -132,6 +132,11 @@ which is exactly the format Trufina requires to indicate we want to receive the 
   * (Note that Trufina[http://www.trufina.com] itself doesn't support maxAge or timeframe yet)
 * Setting ResidenceAddress seed data isn't yet supported
 
+== API Version
+
+This is compatible with the latest Trufina API version as of the creation date: Trufina API 1.0.4
+
+
 == Compatibility
 
 The goal of this module is to be relatively framework agnostic.  That being said, I've personally only tried to use it
