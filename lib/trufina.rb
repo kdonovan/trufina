@@ -20,7 +20,7 @@ class Trufina
     #   * seed  -- Hash of seed data used to prefill the user's forms at Trufina's website
     def login_request(prt, opts = {})
       opts[:requested] ||= {:name => [:first, :last]}
-      opts[:seed]
+      opts[:seed] ||= []
       xml = Requests::LoginRequest.new(:prt => prt, :data => opts[:requested], :seed => opts[:seed]).render
       sendToTrufina(xml)
     end

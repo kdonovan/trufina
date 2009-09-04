@@ -113,7 +113,7 @@ class Trufina
       has_many :street_addresses, StreetAddress,  :tag => 'StreetAddress',  :attributes => RESPONSE_XML_ATTRIBUTES
       element :city,              String,         :tag => 'City',           :attributes => RESPONSE_XML_ATTRIBUTES
       element :state,             String,         :tag => 'State',          :attributes => RESPONSE_XML_ATTRIBUTES
-      element :postal_code,       String,         :tag => 'PostalCode',     :attributes => RESPONSE_XML_ATTRIBUTES
+      element :zip,               String,         :tag => 'PostalCode',     :attributes => RESPONSE_XML_ATTRIBUTES
     end
 
     # Encapsulates all response data Trufina may send back
