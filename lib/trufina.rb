@@ -133,7 +133,8 @@ class Trufina
     # Given a PLID (from a login_request), return a url to send the user to
     def login_url_from_plid(plid, is_demo = nil)
       path = (Config.staging? && is_demo) ? "/DemoPartnerLogin/DemoLogin/#{plid}" : "/PartnerLogin/Login/#{plid}"
-      "http://#{domain}#{path}"
+      auth = Config.staging? ? "#{Config.staging_access[:username]}:#{Config.staging_access[:password]}@" : ''
+      "http://#{auth}#{domain}#{path}"
     end
     
     # Removes any hash keys with empty values - seed data can't have any blanks, or Trufina gets mad
