@@ -58,7 +58,7 @@ you'll be redirected to whatever you put as your success endpoint in +trufina.ym
 information about the user Trufina[http://www.trufina.com] has verified.
 
   info = Trufina.login_info_request(870)
-  info.data.present_and_verified # => [{:name=>[{:first=>"FIRSTNAME"}, {:last=>"LASTNAME"}]}] (or whatever names you entered on the staging server)
+  info.data.present_and_verified # => {:name=>{:first=>"FIRSTNAME"}, {:last=>"LASTNAME"}} (or whatever names you entered on the staging server)
 
 
 That completes the simplest use-case.  Say we decide we want more information about the user, like their middle 
@@ -66,14 +66,14 @@ name.  We send Trufina[http://www.trufina.com] an access request, and if the use
 permission we'll get the info back immediately.
 
   new_info = Trufina.access_request(info, {:name => [:middle]})
-  new_info.data.present_and_verified # => [{:name=>[{:middle=>"SomeMiddleName"}]}]
+  new_info.data.present_and_verified # => {:name=>{:middle=>"SomeMiddleName"}}
 
 
 Note that here our demo user has already given Trufina[http://www.trufina.com] permission to see all the name components, so we get 
 the middle name back immediately.  For a different component where Trufina[http://www.trufina.com] needs to ask the user there's no 
 useful data in the response (the XML contains a "pending" node, but the gem doesn't bother parsing it out).
 
-  Trufina.access_request(info, [:phone]).data.present_and_verified # => []
+  Trufina.access_request(info, [:phone]).data.present_and_verified # => {}
 
 
 In this case we would receive an AccessNotification to our servers once the user gave us permission to access

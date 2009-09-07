@@ -71,14 +71,21 @@ class Trufina
       
       # Shortcut to collecting any information that's present and available
       def present_and_verified
-        yes = []
-        self.class.elements.map(&:method_name).each  do |p|
+        yes = {}
+        self.class.elements.map(&:method_name).each do |p|
           next unless val = self.send(p)
+          element = self.class.elements.detect{|e| e.method_name == p}
           
           if val.respond_to?(:present_and_verified)
-            yes << {p.to_sym => val.present_and_verified}
-          else
-            yes << {p.to_sym => val} if val.state == 'verified' && val.status == 'present'
+            yes[p.to_sym] = val.present_and_verified
+          elsif element.options[:single]
+            yes[p.to_sym] = val if val.state == 'verified' && val.status == 'present'
+          else # street_addresses is an array...
+            values = []
+            val.each do |array_item|
+              values << array_item if array_item.state == 'verified' && array_item.status == 'present'
+            end
+            yes[p.to_sym] = values
           end
         end
         yes
