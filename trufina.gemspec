@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{trufina}
-  s.version = "0.2.1"
+  s.version = "0.2.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Kali Donovan"]
-  s.date = %q{2009-09-04}
+  s.date = %q{2009-09-06}
   s.description = %q{Provides a DSL to easily interact with the XML API offered by Trufina.com, an identity verification company.}
   s.email = %q{kali.donovan@gmail.com}
   s.extra_rdoc_files = [
@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".gitignore",
+     "CHANGELOG",
      "MIT-LICENSE",
      "README.rdoc",
      "Rakefile",
