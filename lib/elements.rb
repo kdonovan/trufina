@@ -106,6 +106,11 @@ class Trufina
       element :middle_initial, String, :tag => 'MiddleInitial', :attributes => RESPONSE_XML_ATTRIBUTES
       element :last,    String, :tag => 'Surname',              :attributes => RESPONSE_XML_ATTRIBUTES
       element :suffix,  String, :tag => 'Suffix',               :attributes => RESPONSE_XML_ATTRIBUTES
+      
+      def to_s
+        name_parts = self.class.elements.map(&:method_name)
+        name_parts.collect {|name_part| self.send(name_part) }.compact.join(' ')
+      end
     end
     
     # Encapsulates Trufina's address fields - has multiple street address fields
@@ -124,6 +129,10 @@ class Trufina
       def street_address=(adr)
         self.street_addresses ||= []
         self.street_addresses << adr
+      end
+      
+      def to_s
+        [street_addresses[0], street_addresses[1], city, state, zip].compact.join(', ')
       end
     end
     
