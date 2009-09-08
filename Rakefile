@@ -11,7 +11,7 @@ begin
     gem.email = "kali.donovan@gmail.com"
     gem.homepage = "http://github.com/kdonovan/trufina"
     gem.authors = ["Kali Donovan"]
-    gem.add_dependency "jimmyz-happymapper"
+    gem.add_dependency "kdonovan-happymapper"
   end
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"

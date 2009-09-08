@@ -1,3 +1,6 @@
+0.2.4 [September 07, 2009]
+  * Switching from jimmyz-happymapper to kdonovan-happymapper, which includes ability to Marshal happymapped objects
+
 0.2.3 [September 07, 2009]
   * Added a to_s method for Trufina::Elements::Name and Trufina::Elements::ResidenceAddressResponse
 

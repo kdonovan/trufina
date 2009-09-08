@@ -6,6 +6,7 @@
   <AccessResponse>
     <Name state="verified" age="2007-09-10 10:17:02.0" charged="false">
       <First state="verified" status="present">John</First>
+      <Surname state="verified" status="present">Smith</Surname>
     </Name>
     <Age state="verified" age="2007-09-10 10:17:02.0" charged="false" status="present">43</Age>
     <ResidenceAddress charged="false">
