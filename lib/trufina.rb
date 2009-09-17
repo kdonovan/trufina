@@ -78,6 +78,11 @@ class Trufina
       sendToTrufina(xml)
     end
 
+    # Retreive Trufina's XSD Schema
+    def schema
+      @@schema ||= XML::Schema.from_string(open("http://www.trufina.com/api/truapi.xsd").read)
+    end
+
 
     protected
 
@@ -87,10 +92,6 @@ class Trufina
   
     def endpoint # :nodoc:
       '/WebServices/API/'
-    end
-
-    def schema
-      @@schema ||= XML::Schema.from_string(open("http://www.trufina.com/api/truapi.xsd").read)
     end
 
     # Send the specified XML to Trufina's servers

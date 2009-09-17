@@ -46,8 +46,8 @@ class Trufina
       # We have access to Trufina's XML schema, so we might as well validate against it before we hit their servers
       # http://codeidol.com/other/rubyckbk/XML-and-HTML/Validating-an-XML-Document/
       def validate_against_schema
-        libxml = XML::Document.string( self.to_xml )
-        libxml.validate(Trufina.schema)
+        lxml = XML::Document.string( self.to_xml )
+        lxml.validate(Trufina.schema)
       end
     
     end
@@ -131,7 +131,7 @@ class Trufina
         super(args)
         
         # Trufina is brilliant, and they fail if this isn't in the request (even though they don't actually read the value)
-        seed.residence_address.timeframe = 'current'
+        seed.residence_address.timeframe = 'current' if seed && seed.residence_address
       end
     end
   

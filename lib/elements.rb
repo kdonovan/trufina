@@ -161,10 +161,10 @@ class Trufina
       # element :birth_date,        Date,     :tag => 'DateOfBirth',    :attributes => RESPONSE_XML_ATTRIBUTES
       # element :birth_country,     String,   :tag => 'CountryOfBirth', :attributes => RESPONSE_XML_ATTRIBUTES
       element :phone,             String,   :tag => 'Phone',          :attributes => RESPONSE_XML_ATTRIBUTES
+      element :age,               String,   :tag => 'Age',            :attributes => RESPONSE_XML_ATTRIBUTES
       element :residence_address, ResidenceAddressResponse,           :single => true
       element :ssn,               String,   :tag => 'fullSSN',        :attributes => RESPONSE_XML_ATTRIBUTES
       element :last_4_ssn,        String,   :tag => 'Last4SSN',       :attributes => RESPONSE_XML_ATTRIBUTES
-      element :age,               String,   :tag => 'Age',            :attributes => RESPONSE_XML_ATTRIBUTES
     end
 
     # Encapsulates all data we can request from Trufina
@@ -177,10 +177,10 @@ class Trufina
       element :birth_date,        Date,     :tag => 'DateOfBirth'
       element :birth_country,     String,   :tag => 'CountryOfBirth'
       element :phone,             String,   :tag => 'Phone'           # If Trufina implemented it, could have timeframe and maxAge attributes
+      element :age,               String,   :tag => 'Age',            :attributes => {:comparison => String}
       element :residence_address, ResidenceAddressRequest,            :single => true   # If Trufina implemented it, could have timeframe and maxAge attributes
       element :ssn,               String,   :tag => 'fullSSN'
       element :last_4_ssn,        String,   :tag => 'Last4SSN'
-      element :age,               String,   :tag => 'Age',            :attributes => {:comparison => String}
     end
     
     # Encapsulates all seed data Trufina accepts
@@ -193,10 +193,10 @@ class Trufina
       element :birth_date,        Date,     :tag => 'DateOfBirth'
       element :birth_country,     String,   :tag => 'CountryOfBirth'
       element :phone,             String,   :tag => 'Phone'
+      element :age,               String,   :tag => 'Age'
       element :residence_address, ResidenceAddressResponse,           :single => true
       element :ssn,               String,   :tag => 'fullSSN'
       element :last_4_ssn,        String,   :tag => 'Last4SSN'
-      element :age,               String,   :tag => 'Age'
     end
     
   end

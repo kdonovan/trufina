@@ -10,11 +10,7 @@ class Trufina
     def self.parse(raw_xml)
       xml = LibXML::XML::Parser.string(raw_xml).parse
       
-      if Trufina::Config.debug?
-        puts "Received XML:\n\n"
-        puts xml
-        puts "\n\n"
-      end
+      puts "Received XML:\n\n#{xml}\n\n" if Trufina::Config.debug?
       
       # Try to find an appropriate local happymapper class
       begin
