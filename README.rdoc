@@ -127,21 +127,37 @@ which is exactly the format Trufina requires to indicate we want to receive the 
 
 == Rails Integration
 
-Personally, I set up a controller dedicated to handling Trufina's postbacks (Success, Failure, and Cancel) as well as their AccessNotification.  I suggest using the +current_user+'s ID as your PRT.  When a user wants to sign up with Trufina, use:
+Personally, I set up a controller dedicated to handling Trufina's postbacks (Success, Failure, and Cancel) as well as their AccessNotification.  If (as I'd suggest) you use the +current_user+'s ID as your PRT, then when a user wants to sign up with Trufina:
 
-  redirect_url = Trufina.login_url(user.id, :requested => REQUESTED_DATA, :seed => SEED_DATA)
+  redirect_url = Trufina.login_url(current_user.id, :requested => REQUESTED_DATA, :seed => SEED_DATA)
 
 
 
-The biggest gotcha is that Trufina only uses the PRT for the login_info_request / login_info_response messages -- after that they use their own identifier (the PUR) to indicate which user a given response refers to, so you'll need to store the PUR provided in the login_info_request somewhere and use that going forward. Your success will end up looking something like this:
+The biggest gotcha is that Trufina only uses the PRT for the login_info_request / login_info_response messages -- after that they use their own identifier (the PUR) to indicate which user a given response refers to, so you'll need to store the PUR provided in the login_info_request somewhere and use that going forward. Your success action will end up looking something like this:
 
+  def success
     info = Trufina.login_info_request( params[:tlid )
     user = User.find(info.prt)
     user.pur = info.pur
     ...
+  end
 
 
 Also, note that an AccessNotification will be sent immediately upon a new user's registration with Trufina.  You can just ignore any AccessNotification with an unknown PUR value, or it's also possible to use the Trufina.info_request in response to this first AccessNotification and avoid using the login_info_response altogether.
+
+Once you've verified the user, you just need to handle any AccessNotifications you may receive:
+
+  def handle_access_notification
+    tnid = params[:trufina_access_notification][:tnid]
+    info = Trufina.info_request( tnid )
+    user = User.find_by_pur( info.pur )
+
+    # Now take appropriate actions to handle user either revoking or adding 
+    # permissions for you to access certain subsets of their verified data.
+    ...
+  end
+
+
 
 
 == Unsupported functionality
