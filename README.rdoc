@@ -1,5 +1,8 @@
 = Trufina
 
+  UPDATE: It appears the Trufina service is no longer available (the website is down and the API is unresponsive).
+  Unfortunately that renders this gem no longer usable.
+
 The Trufina gem provides a DSL allowing you to easily interface with {Trufina.com}[http://www.trufina.com]'s identity verification API.  
 Trufina[http://www.trufina.com] provides an identity verification service, and this DSL basically lets you request verified information
 from the user (who provides that information directly to Trufina[http://www.trufina.com], and then uses their website to control
